@@ -12,14 +12,14 @@ Contar con una herramienta que permita dar seguimiento en tiempo real de las rev
 
 ### Servidores Pruebas
 - RevSeg
-  IP Address: 192.168.13.2
+  - IP Address: 192.168.13.2
 - RevSegDB
-  IP Address: 192.168.13.3
+  - IP Address: 192.168.13.3
 - Probable LDAP
-  IP Address: 192.168.13.4
+  - IP Address: 192.168.13.4
 
 ## Servidores Produccion
 - RevSeg
-  IP Address: 45.55.28.187
+  - IP Address: 45.55.28.187
 - RevSegDB
-  IP Address: 104.236.170.92
+  - IP Address: 104.236.170.92
