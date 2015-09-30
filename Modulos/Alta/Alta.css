@@ -1,0 +1,19 @@
+/*	Proyecto Revisiones de Seguridad*/
+/*	UNAM-CERT*/
+
+/*	mvasquez && varteaga*/
+
+.categoria
+{
+
+  color: blue;
+  font-size:15px;
+}
+
+
+
+.apartado
+{
+  position: relative; 
+  color: green;
+}

@@ -1,0 +1,848 @@
+<?php
+/*
+*Form alta de revisión
+*@author: mvasquez & varteaga
+*@date: 29/09/2015
+*/
+
+function alta_menu() {
+  $items['Alta'] = array(
+    'title' => 'Alta de nueva revisión.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('alta_form'),
+    'access callback' => TRUE,
+    'weight' => 9,
+    'menu_name' => 'main-menu',
+    'options' => array('attributes' => array('class' => 'menu_alta')),
+    );
+  return $items;
+}
+
+
+function alta_form($form, &$form_submit) {
+  if ($form_submit['rebuild']) {
+    $form_submit['input'] = array();
+  }
+  if (empty($form_submit['storage'])) {
+    $form_submit['storage'] = array(
+      'step' => 'alta_rev_form',
+    );
+  }
+  $function = $form_submit['storage']['step'];
+  $form = $function($form, $form_submit);
+  return $form;
+}
+
+
+function alta_rev_form($form,&$form_submit) {
+	
+	$form['#attached']['css'] = array(
+	drupal_get_path('module','Alta') . '/Alta.css'
+	);
+	
+	$nom_org='';
+	$tipo_org='';
+	$fecha_sol='';
+	$fecha_disp='';
+	$fecha_ini='';
+	$fecha_fin='';
+	$nom_adm='';
+	$correo_adm='';
+	$tel_adm='';
+	$nom_tec='';
+	$correo_tec='';
+	$tel_tec='';
+	$sist_op='';
+	$sist_op_ver='';
+	$ip_sitio='';
+	$prot_acc_rem='';
+	$puer_acc_rem='';
+	$dir_usua='';
+	$ip_web='';
+	$puer_acc_web='';
+	$url_sitio='';
+	$soft_web='';
+	$ver_web='';
+	$ip_bd='';
+	$puer_acc_bd='';
+	$nom_bd='';
+	$soft_bd='';
+	$ver_bd='';
+	
+  $mensaje = "<div>Captura los datos que se encuentran en la solicitud de revisión.<d/iv><div class='categoria'><br>INFORMACION GENERAL</div>";  
+  $form['inicio'] = array(
+    '#type' => 'item',
+    '#title' => $mensaje,
+  );
+ 
+  $info1 = "<div class='apartado'><u>Organización.</u></div>";  
+  $form['info1'] = array(
+    '#type' => 'item',
+    '#title' => $info1,
+  );
+  
+  $form['nom_org'] = array(
+    '#title' => t('Nombre de la organización:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $nom_org,
+    '#filters' => array('trim','strip_tags'),
+  );
+  $form['tipo'] = array(
+    '#title' => t('Tipo de organización:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $tipo_org,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+  $info2 = "<div class='apartado'><u>Periodo de revisión.</u></div>";  
+  $form['info2'] = array(
+    '#type' => 'item',
+    '#title' => $info2,
+  );
+  
+  $form['fecha_sol'] = array(
+    '#title' => t('Fecha de solicitud:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#description' => t('dd/mm/aaaa'),
+    '#default_value' => $fecha_sol,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+   $form['fecha_disp'] = array(
+    '#title' => t('Fecha de disponibilidad de la CSI/UNAM-CERT'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#description' => t('dd/mm/aaaa'),
+    '#default_value' => $fecha_disp,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+   $form['fecha_ini'] = array(
+    '#title' => t('Fecha de inicio de la revisión:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#description' => t('dd/mm/aaaa'),
+    '#default_value' => $fecha_ini,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+   $form['fecha_fin'] = array(
+    '#title' => t('Fecha de fin de la revisión:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#description' => t('dd/mm/aaaa'),
+    '#default_value' => $fecha_fin,
+    '#filters' => array('trim','strip_tags'),
+  );
+
+  $info3 = "<div class='categoria'>DATOS DE CONTACTO</div>";  
+  $form['info3'] = array(
+    '#type' => 'item',
+    '#title' => $info3,
+  );
+  
+  $info4 = "<div class='apartado'><u>Contacto administrativo -Administrador del proyecto.</u></div>";  
+  $form['info4'] = array(
+    '#type' => 'item',
+    '#title' => $info4,
+  );
+  
+  $form['nom_con_adm'] = array(
+    '#title' => t('Nombre completo:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $nom_adm,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+  $form['correo_con_adm'] = array(
+    '#title' => t('Correo:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $correo_adm,
+	'#rules' => array(
+        array('rule' => 'email', 'error' => 'Correo electrónico no válido.'),
+      ),   
+      '#filters' => array('trim', 'strip_tags','lowercase'),
+  );
+  
+  $form['tel_con_adm'] = array(
+    '#title' => t('Teléfono'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $tel_adm,
+    '#rules' => array(
+	  array('rule'=>'length[7,15]','error'=>'Teléfono no válido'),
+      array('rule' => 'numeric', 'error' => 'Teléfono, sólo números'),
+	),      
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+   $info5 = "<div class='apartado'><u>Contacto técnico -Administrador del sitio web.</u></div>";  
+   $form['info5'] = array(
+    '#type' => 'item',
+    '#title' => $info5,
+  );
+  
+   $form['nom_con_tec'] = array(
+    '#title' => t('Nombre completo:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $nom_tec,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+  $form['correo_con_tec'] = array(
+    '#title' => t('Correo:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $correo_tec,
+	'#rules' => array(
+        array('rule' => 'email', 'error' => 'Correo electrónico no válido.'),
+      ),   
+      '#filters' => array('trim', 'strip_tags','lowercase'),
+  );
+  
+  $form['tel_con_tec'] = array(
+    '#title' => t('Teléfono'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $tel_tec,
+    '#rules' => array(
+	  array('rule'=>'length[7,15]','error'=>'Teléfono no válido'),
+      array('rule' => 'numeric', 'error' => 'Teléfono, sólo números'),
+	),      
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+  $info6 = "<div class='categoria'>REQUERIMIENTOS</div>";  
+  $form['info6'] = array(
+    '#type' => 'item',
+    '#title' => $info6,
+  );
+    $info7 = "<div class='apartado'><u>Sistema Operativo</u></div>";  
+   $form['info7'] = array(
+    '#type' => 'item',
+    '#title' => $info7,
+  );
+  
+  
+  $form['sist_op'] = array(
+    '#title' => t('Sistema Operativo:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $sist_op,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+  
+  $form['sist_op_ver'] = array(
+    '#title' => t('Version Sistema Operativo:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $sist_op_ver,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+  $form['ip_sitio'] = array(
+    '#title' => t('Direccion(es) IP:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $ip_sitio,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+  $form['prot_acc_rem'] = array(
+    '#title' => t('Protocolo de acceso remoto:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $prot_acc_rem,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+  $form['puer_acc_rem'] = array(
+    '#title' => t('Puerto de acceso remoto'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $puer_acc_rem,
+    '#rules' => array(
+	  array('rule'=>'length[2,6]','error'=>'Puerto no válido'),
+      array('rule' => 'numeric', 'error' => 'Puerto, sólo números'),
+	),
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+  $form['dir_usua'] = array(
+    '#title' => t('Directorio del usuario'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $dir_usua,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+   $info8 = "<div class='apartado'><u>Sitio web</u></div>";  
+   $form['info8'] = array(
+    '#type' => 'item',
+    '#title' => $info8,
+  );
+  
+  $form['ip_web'] = array(
+    '#title' => t('Direccion(es) IP del servicio web:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $ip_web,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+  $form['puer_acc_web'] = array(
+    '#title' => t('Puerto(s):'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $puer_acc_web,
+    '#rules' => array(
+	  array('rule'=>'length[2,6]','error'=>'Puerto no válido'),
+      array('rule' => 'numeric', 'error' => 'Puerto, sólo números'),
+	),
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+    $form['url_sitio'] = array(
+    '#title' => t('URL de las aplicaciones web:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $url_sitio,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+  $form['soft_web'] = array(
+    '#title' => t('Sofware del servidor web:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $soft_web,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+  $form['ver_web'] = array(
+    '#title' => t('Versión del servidor web:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $ver_web,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+   $info9 = "<div class='apartado'><u>Manejador de Base de Datos</u></div>";  
+   $form['info9'] = array(
+    '#type' => 'item',
+    '#title' => $info9,
+  );
+  
+    $form['ip_bd'] = array(
+    '#title' => t('Direccion(es) IP:'),
+    '#type' => 'textfield',
+    '#required' => FALSE,
+    '#default_value' => $ip_bd,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+  $form['puer_acc_bd'] = array(
+    '#title' => t('Puerto(s):'),
+    '#type' => 'textfield',
+    '#required' => FALSE,
+    '#default_value' => $puer_acc_bd,
+    '#rules' => array(
+	  array('rule'=>'length[2,6]','error'=>'Puerto no válido'),
+      array('rule' => 'numeric', 'error' => 'Puerto, sólo números'),
+	),
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+    $form['nom_bd'] = array(
+    '#title' => t('Nombre de la base de datos:'),
+    '#type' => 'textfield',
+    '#required' => FALSE,
+    '#default_value' => $nom_bd,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+  $form['soft_bd'] = array(
+    '#title' => t('Sofware del servidor de base de datos:'),
+    '#type' => 'textfield',
+    '#required' => FALSE,
+    '#default_value' => $soft_bd,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+  $form['ver_bd'] = array(
+    '#title' => t('Versión del servidor de base de datos:'),
+    '#type' => 'textfield',
+    '#required' => FALSE,
+    '#default_value' => $ver_bd,
+    '#filters' => array('trim','strip_tags'),
+  );
+  
+/*	
+  	$form['correoe'] = array(
+      '#title' => t('Correo electrónico:'),
+      '#type' => 'textfield',
+      '#required' => TRUE,
+      '#default_value' => $correoe,
+      '#rules' => array(
+        array('rule' => 'email', 'error' => 'Correo electrónico no válido.'),
+      ),   
+      '#filters' => array('trim', 'strip_tags','lowercase'),
+    );
+
+
+  $form['correom_in'] = array(
+	 '#type' => 'radios',
+	 '#required' => TRUE,
+	 '#description' => t('Para poder tener acceso al material digital es obligatorio contar con una cuenta de Microsoft (@outlook.com, @hotmail.com o @live.com)'),
+	 '#title' => t('¿Deseas el material en formato digital?'),
+	 '#options' => array(
+	 0 => t('No'),
+	 1 => t('Sí'),
+	 ),
+	 '#empty_value' => '',
+	);
+
+	$form['correom'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Por favor ingresa tu cuenta de correo'),
+      '#states' => array(
+ 	  'visible' => array(
+ 	  ':input[name="correom_in"]' => array('value' => '1'),
+ ),
+ ),
+    );
+   $form['correom']['consultar'] = array(
+      '#type' => 'textfield',
+      '#default_value' => $correom,
+      '#rules' => array(
+        array('rule' => 'email', 'error' => 'Correo electrónico no válido.'),
+      ),   
+      '#filters' => array('trim', 'strip_tags','lowercase'),
+      '#required' => FALSE,
+ );
+ 
+  $form['telefono'] = array(
+    '#title' => t('Teléfono'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $telefono,
+    '#rules' => array(
+	  array('rule'=>'length[7,15]','error'=>'Teléfono no válido'),
+      array('rule' => 'numeric', 'error' => 'Teléfono, sólo números'),
+	),      
+    '#filters' => array('trim','strip_tags'),
+  );
+  $form['empresa'] = array(
+    '#title' => t('Empresa/Institución educativa:'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $empresa,      
+    '#filters' => array('trim','strip_tags'),
+  );
+  ////////////////MANTENER, FORM CON LISTA //////////////////////
+  /*db_set_active('congreso');
+  $puestos = db_select('puesto','p')
+    ->fields('p',array('idpuesto','puenombre'))
+	->condition('puevisible', TRUE,'=')
+	->orderBy('puenombre','ASC')
+    ->execute()
+    ->fetchAllKeyed();
+  db_set_active('default');  
+  foreach($puestos as $key => $value){  
+	$puestos[$key] = t(register_replace($value));			
+  }  	
+  $form['puesto'] = array(
+    '#title' => t('Puesto:'),
+    '#type' => 'select',
+    '#options' => '',
+    '#empty_value' => '',
+    '#empty_option' => '-Seleccione-',
+    '#required' => TRUE,
+  );
+ //////////////////////////////form cortesia
+    $form['cortesia'] = array(
+    '#title' => t('Si cuentas con un código de cortesía para el ciclo de conferencias por favor ingrésalo aquí:'),
+    '#type' => 'textfield',
+    '#required' => FALSE,
+    '#default_value'=> "",
+    '#filters' => array('length[8,14]','trim','strip_tags'),
+  );
+  */
+  ///////////////////////////MANTENER, FORM CON CHECKBOXES /////////////////////////////////
+  /*db_set_active('congreso');
+  $respuestas = db_select('respuesta','r')
+    ->fields('r',array('idrespuesta','respuesta'))
+    ->execute()
+    ->fetchAllKeyed();
+  db_set_active('default');  
+  foreach($respuestas as $key => $value){  
+	$respuestas[$key] = t(register_replace($value));
+  }
+  $form['difusion'] = array(
+    '#title' => t('¿Por qué medio te enteraste del evento?'),
+    '#type' => 'checkboxes',
+    '#options' => $respuestas,
+    '#default_value' => $idrespuesta,
+	'#required' => TRUE,
+  );
+/*
+
+  	 $form['patrocinio'] = array(
+    '#title' => t('¿Te gustaría recibir información como boletines, alertas y noticias de UNAM-CERT y nuestros patrocinadores vía correo electrónico?'),
+    '#type' => 'radios',
+    '#options' => array(
+      0 => t('No'),
+      1 => t('Sí'),
+	 ), 
+    '#required' => TRUE,
+    '#empty_value' => '',
+    );
+*/	
+	$form['submit'] = array(
+      '#value' => 'Subir',
+      '#type' => 'submit',
+      '#submit' => array('alta_submit'),
+    );	
+  
+  $form['#validate'][] = 'alta_validate';
+  return $form; 
+}
+
+//Validacion de formularios
+function alta_validate($form, &$form_submit){
+
+  $mynombre = filter_var(strip_tags($form_submit['values']['nombre']),FILTER_SANITIZE_STRING);
+  $mycorreo = filter_var(strip_tags($form_submit['values']['correoe']),FILTER_SANITIZE_EMAIL);
+  $myapp = filter_var(strip_tags($form_submit['values']['apellidop']),FILTER_SANITIZE_STRING);
+  $myapm = filter_var(strip_tags($form_submit['values']['apellidom']),FILTER_SANITIZE_STRING);
+  $mytel = strip_tags($form_submit['values']['telefono']);
+  $myempresa = filter_var(strip_tags($form_submit['values']['empresa']),FILTER_SANITIZE_STRING);
+  $mytipoasis = strip_tags($form_submit['values']['tipoasis']);
+  $mycortesia = filter_var(strip_tags($form_submit['values']['cortesia']),FILTER_SANITIZE_STRING);
+  $mycorreom = filter_var(strip_tags($form_submit['values']['consultar']),FILTER_SANITIZE_EMAIL);
+  $mymaterial= $form_submit['values']['correom_in'];
+ 
+
+  #if(preg_match('/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ ]+/',$mynombre)){
+  if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ]+(\s[A-ZÁÉÍÓÚÜÑ]?[a-záéíóúüñ]+)*$/',$mynombre)){
+  	$per7 = 7;
+	$per7 = json_encode($per7);
+    form_set_error('Nombre', t('Ingrese un nombre válido.'));
+  }else{
+  	 if(strlen($mynombre) > 35){
+  	$per7 = 7;
+	$per7 = json_encode($per7);
+  	form_set_error('Nombre', t('Ingrese un nombre de menor longitud.'));
+  }
+  }
+
+  if(strlen($myapm) > 35){
+  	$per3 = 3;
+	$per3 = json_encode($per3);
+  	form_set_error('ApMaterno', t('Ingrese un apellido materno de menor longitud'));
+  }else{
+  	 #if(preg_match('/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]+/',$myapm)){
+	if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ]+(\s[A-ZÁÉÍÓÚÜÑ]?[a-záéíóúüñ]+)*$/',$myapm)){
+	$per3 = 3;
+	$per3 = json_encode($per3);
+    form_set_error('ApMaterno', t('Ingrese un apellido materno válido.'));
+  }
+  }
+  if(strlen($myapp) > 35){
+  	$per4 = 4;
+	$per4 = json_encode($per4);
+  	form_set_error('ApPaterno', t('Ingrese un apellido paterno de menor longitud'));
+  }else{ 
+  #if(preg_match('/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]+/',$myapp)){
+  if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ]+(\s[A-ZÁÉÍÓÚÜÑ]?[a-záéíóúüñ]+)*$/',$myapp)){
+  	$per4 = 4;
+	$per4 = json_encode($per4);
+    form_set_error('ApPaterno', t('Ingrese un apellido paterno válido.'));
+  }
+  }
+  if(preg_match('/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+/',$myempresa)){
+  	$per5 = 5;
+	$per5 = json_encode($per5);
+    form_set_error('Empresa', t('Ingrese un nombre de empresa válido.'));
+  }
+  if(!preg_match('/^[a-zA-Z][a-zA-Z0-9_\-]?(\.?[a-zA-Z0-9_\-])+@[a-z0-9-]+(.[a-z0-9-]+)*(.[a-z]{2,4})$/',$mycorreo)){
+  	$per6 = 6;
+	$per6 = json_encode($per6); 	
+    form_set_error('Correo', t('Ingrese un correo válido.'));
+  }
+############################################################################################################
+  if(!empty($mycortesia)){
+  if(!preg_match('/^[a-zA-Z0-9]{8,8}$/',$mycortesia)){
+  	$per2=2;
+	$per2 = json_encode($per2);
+    form_set_error('Cortesia', t('Ingrese una cortesía válida.'));
+  }
+  }
+  
+  if(!empty($mycorreom)){
+  //if(!preg_match('/^[a-zA-Z][a-zA-Z0-9_\-]+\.?[a-zA-Z0-9_\-]*@(outlook.com|hotmail.com|live.com)+$/',$mycorreom)){
+  //by varteaga
+   if(!preg_match('/^[a-zA-Z][a-zA-Z0-9_\-]?(\.?[a-zA-Z0-9_\-])+@(outlook.com|hotmail.com|live.com)+$/',$mycorreom)){
+   	$per1=1;
+	$per1 = json_encode($per1); 	
+    form_set_error('Correo', t('Ingrese un correo válido únicamente @outlook.com, @hotmail.com o @live.com'));
+  }
+  }else{
+  	if($mymaterial == true){
+  	$per1=1;
+		$per1 = json_encode($per1); 
+		form_set_error('Correo', t('Ingrese un correo @outlook.com, @hotmail.com o @live.com'));
+	
+  }
+  }
+
+    
+ $form_submit['values']['nombre']  = $mynombre;
+ $form_submit['values']['correoe'] = $mycorreo; 
+ $form_submit['values']['apellidop'] = $myapp;
+ $form_submit['values']['apellidom'] = $myapm;
+ $form_submit['values']['telefono'] = $mytel;
+ $form_submit['values']['empresa'] = $myempresa;
+ $form_submit['values']['tipoasis'] = $mytipoasis;
+ $form_submit['values']['cortesia'] = $mycortesia;
+ $form_submit['values']['consultar'] = $mycorreom;
+ $form_submit['values']['correoin'] = $mycorreom;
+
+}
+
+//Almacenamiento de datos
+function alta_submit($form, &$form_submit) {
+	
+}
+/*  $values = $form_submit['values'];
+  $form_submit['rebuild'] = TRUE;
+  if ($form_submit['values']['tipoasis'] == 4){
+  	$form_submit['renasec'] = true;
+	$form_submit['storage']['step'] = 'register_renasec_form'; 	
+  }
+  //en caso de edicion:
+  else if(isset($_SESSION['edit_personales']) && $_SESSION['edit_personales'] == true){
+  	$form_submit['renasec'] = false;
+	$form_submit['storage']['step'] = 'register_confirmacion_form';
+  }
+  else {
+  	$form_submit['renasec'] = false;
+	$form_submit['storage']['step'] = 'register_eventos_form';
+	$path = drupal_get_path('module', 'register');
+    drupal_add_js($path.'/register.js',array('type'=>'file','weight' => 1));
+  }  
+  $tipoasis  = $form_submit['values']['tipoasis'];
+  $beca      = $form_submit['values']['solicitar'];
+  $nombre    = $form_submit['values']['nombre'];
+  $apellidop = $form_submit['values']['apellidop'];
+  $apellidom = $form_submit['values']['apellidom'];
+  $correoe   = $form_submit['values']['correoe'];
+  $telefono  = $form_submit['values']['telefono'];
+  $empresa   = $form_submit['values']['empresa'];
+  $puesto    = $form_submit['values']['puesto'];
+  $difusion  = $form_submit['values']['difusion'];
+  $patrocinio= $form_submit['values']['patrocinio'];
+  $correom   = $form_submit['values']['consultar'];
+  $material   = $form_submit['values']['correom_in'];
+  if($material == false){
+  	$correom = '';
+  }
+  $cortesia   = $form_submit['values']['cortesia'];
+  $hora = date('h:i');   
+  if(empty($beca))
+  	$beca = 'false';
+
+  $_SESSION['tipoasis'] = $tipoasis;
+  //si es edicion:
+  db_set_active('congreso');   
+  $transaccion = db_transaction();  
+  if(isset($_SESSION['edit_personales']) && $_SESSION['edit_personales'] == true){
+  	$idasistente = $_SESSION['idasistente'];
+  	try {
+  	  $personales = db_update('asistente_tempo')
+        ->fields(array(
+          'idtipoasis' => $tipoasis,
+          'becado' => $beca,
+          'asis_nombre' => $nombre,
+          'asis_paterno' => $apellidop,
+          'asis_materno' => $apellidom,
+          'asis_correo' => $correoe,
+          'asis_telefono' => $telefono,
+          'asis_empresa' => $empresa,
+          'idpuesto' => $puesto,
+          'idpais' => 138,
+          'asis_enviomail' => $patrocinio,
+          'idciclo' => 2,
+          'asis_hora_registro' => $hora,
+		  'asis_correom' => $correom,
+          'asis_material' => $material,
+          'id_cort' => $_SESSION['id_cort'],
+        ))
+        ->condition('idasistente',$idasistente,'=')
+        ->execute(); 
+		//Actualizacion cambios en cortesias(borrado, nuevas, etc.)
+		if($_SESSION['id_cort_old']!= NULL){
+		$personales = db_update('cortesias')
+        ->fields(array(
+          'asignado' => 'false',
+        ))
+        ->condition('id_cort',$_SESSION['id_cort_old'],'=')
+        ->execute();
+        }
+	  if($_SESSION['ban_cortesia'] == 'true'){
+	  $prueba = db_update('cortesias')
+        ->fields(array(
+          'asignado' => $_SESSION['ban_cortesia'],
+        ))
+        ->condition('id_cort',$_SESSION['id_cort'],'=')
+        ->execute();
+       }
+		
+	  $delestadistica = db_delete('estadisticas')
+        ->condition('idasistente', $idasistente)
+        ->execute(); 
+	  foreach($difusion as $key => $valor){	
+        if($valor != 0){
+          $estadisticas = db_insert('estadisticas')->fields(array(
+            'idasistente' => $idasistente,
+            'idpregunta' => 1,	
+	        'idrespuesta' => $valor,       
+          ))->execute();	
+        }	
+	  }
+      drupal_set_message(t('Datos personales actualizados con éxito.'));
+	}
+	catch (Exception $e) {
+      $transaccion->rollback();	
+      drupal_set_message(t('Hubo un problema para actualizar tu datos personales. Por favor intente más tarde.'));
+	  header('Location: http://congreso.seguridad.unam.mx/2015/');
+    }
+  }
+  //si es primera vez:
+  else{
+  	$transaccion = db_transaction();
+  	try {
+      $asistente = db_insert('asistente_tempo')->fields(array(
+        'idtipoasis' => $tipoasis,
+        'becado' => $beca,
+        'asis_nombre' => $nombre, 
+        'asis_paterno' => $apellidop,
+        'asis_materno' => $apellidom,
+        'asis_correo' => $correoe,
+        'asis_telefono' => $telefono,
+        'asis_empresa' => $empresa,
+        'idpuesto' => $puesto,
+        'id_cort' => $_SESSION['id_cort'],#
+        'idpais' => 138,
+        'asis_enviomail' => $patrocinio,
+        'idciclo' => 2,
+        'asis_hora_registro' => $hora,
+		'asis_correom' => $correom,
+	    'asis_material' => $material,   
+      ))->execute();
+	  $_SESSION['idasistente'] = $asistente;
+	 //Actualizacion de la cortesia 
+	  if($_SESSION['ban_cortesia'] == 'true'){
+	  $prueba = db_update('cortesias')
+        ->fields(array(
+          'asignado' => $_SESSION['ban_cortesia'],
+        ))
+        ->condition('id_cort',$_SESSION['id_cort'],'=')
+        ->execute();
+       }
+	
+      foreach($difusion as $key => $valor){	
+        if($valor != 0){
+          $estadisticas = db_insert('estadisticas')->fields(array(
+            'idasistente' => $asistente,
+            'idpregunta' => 1,	
+	        'idrespuesta' => $valor,       
+          ))->execute();	
+        }	
+	  }
+      drupal_set_message(t('Datos personales guardados con éxito.'));
+    }
+    catch (Exception $e) {
+      $transaccion->rollback();	
+      drupal_set_message(t('Hubo un problema con tu alta. Por favor intente más tarde.'));
+    }
+  }
+  db_set_active('default');
+}*/
+/*
+function register_replace($cadena=''){
+  $iso = array(
+  	'&aacute;',
+  	'&eacute;',
+  	'&iacute;',
+  	'&oacute;',
+  	'&uacute;',
+  	'&Aacute;',
+	'&Eacute;',
+	'&Iacute;',
+	'&Oacute;',
+	'&Uacute;',
+	'&uuml;',
+	'&Uuml;',
+	'&ntilde;',
+	'&Ntilde;',
+  );
+  $utf = array(
+    'á',
+    'é',
+    'í',
+    'ó',
+    'ú',
+    'Á',
+    'É',
+    'Í',
+    'Ó',
+    'Ú',
+    'ü',
+    'Ü',
+    'ñ',
+    'Ñ',
+  );
+ $cadena = str_replace($iso,$utf,$cadena);
+ return $cadena;
+} 
+
+function register_formato_fecha($fecha){
+  $meses=array(
+    "1"=>"enero",
+	"2"=>"febrero",
+	"3"=>"marzo",
+	"4"=>"abril",
+	"5"=>"mayo",
+	"6"=>"junio",
+	"7"=>"julio",
+	"8"=>"agosto",
+	"9"=>"septiembre",
+	"10"=>"octubre",
+	"11"=>"noviembre",
+	"12"=>"diciembre"
+  );
+  list($anio,$mes,$dia)=explode("-",$fecha);
+  foreach($meses as $n=>$l){
+    if($mes==$n){
+      return "$dia de $l de $anio";
+	}
+  }
+}
+
+function register_hora_taller($hora_ini,$hora_fin){
+  $h0=explode(":",$hora_ini);
+  $h1=explode(":",$hora_fin);
+  $hora=$h0[0].":".$h0[1]." a ".$h1[0].":".$h1[1];
+  return $hora;
+}
+
+*/
+
+

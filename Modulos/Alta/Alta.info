@@ -1,0 +1,5 @@
+;$Id$
+name = Alta
+description = Alta de una nueva solicitud de usuario
+package = Drupal 7 Development
+core = 7.x
