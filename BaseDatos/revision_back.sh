@@ -11,6 +11,7 @@ SHA1=/usr/bin/sha1sum
 PG_DUMP=/usr/bin/pg_dump
 
 DATE=`date +%F_%R`
+PG_STATUS=''
 
 #Connections Parameters
 IP_DB='192.168.222.157'
@@ -41,6 +42,13 @@ function backup
 	$DATABASE \
 	--file $DUMP_FILE \
 	2>>$LOG_FILE 1>>$LOG_FILE
+
+	PG_STATUS=$?
+
+	if [ ! -s $DUMP_FILE ]
+	then
+		$ECHO " pg_dump died with status $PG_STATUS."
+	fi
 }	
 
 backup	
