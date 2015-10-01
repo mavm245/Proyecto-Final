@@ -468,7 +468,7 @@ if(!preg_match('/^(([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}([1-9]|1\d\d|2[0-
 	form_set_error('ip_web',t('Ingresar un dirección IP del servicio válida'));}
 if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])/',$puer_acc_web)){
 	form_set_error('puer_acc_web',t('Ingresar un puerto web válido'));}
-if(!preg_match('/^((https?\:\/\/)(www\.)?[A-ZÁÉÍÓÚÜÑa-záéíóúüñ0-9\.\_\(\)\/?]+)$/',$url_sitio)){
+if(!preg_match('/^((https?\:\/\/)(www\.)?[A-ZÁÉÍÓÚÜÑa-záéíóúüñ0-9\.\_\-\(\)\/?]+)$/',$url_sitio)){
 	form_set_error('url_sitio',t('Ingresar una url válida'));}
 if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ0-9\.\_\-\s]+$/',$soft_web)){
 	form_set_error('soft_web',t('Ingresar un nombre válido'));}
