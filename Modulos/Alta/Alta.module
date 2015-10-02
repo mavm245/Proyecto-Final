@@ -112,7 +112,7 @@ function alta_rev_form($form,&$form_submit) {
     '#title' => t('Fecha de solicitud:'),
     '#type' => 'textfield',
     '#required' => TRUE,
-    '#description' => t('dd/mm/aaaa'),
+    '#description' => t('aaaa-mm-dd'),
     '#default_value' => $fecha_sol,
     '#filters' => array('trim','strip_tags'),
   );
@@ -121,7 +121,7 @@ function alta_rev_form($form,&$form_submit) {
     '#title' => t('Fecha de disponibilidad de la CSI/UNAM-CERT'),
     '#type' => 'textfield',
     '#required' => TRUE,
-    '#description' => t('dd/mm/aaaa'),
+    '#description' => t('aaaa-mm-dd'),
     '#default_value' => $fecha_disp,
     '#filters' => array('trim','strip_tags'),
   );
@@ -130,7 +130,7 @@ function alta_rev_form($form,&$form_submit) {
     '#title' => t('Fecha de inicio de la revisión:'),
     '#type' => 'textfield',
     '#required' => TRUE,
-    '#description' => t('dd/mm/aaaa'),
+    '#description' => t('aaaa-mm-dd'),
     '#default_value' => $fecha_ini,
     '#filters' => array('trim','strip_tags'),
   );
@@ -139,7 +139,7 @@ function alta_rev_form($form,&$form_submit) {
     '#title' => t('Fecha de fin de la revisión:'),
     '#type' => 'textfield',
     '#required' => TRUE,
-    '#description' => t('dd/mm/aaaa'),
+    '#description' => t('aaaa-mm-dd'),
     '#default_value' => $fecha_fin,
     '#filters' => array('trim','strip_tags'),
   );
@@ -412,23 +412,23 @@ if(!preg_match('/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+/',$nom_org)){
 if(!preg_match('/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+/',$tipo_org)){
 	form_set_error('tipo_org',t('Ingresar un tipo de organización válido'));
 }
-/*
-if(!preg_match('/^(0[1-9]|[12][0-9]|3[01])\-(0[1-9]|1[012])\-(19|20)\d\d$/',$fecha_sol)){
+
+if(!preg_match('/^(19|20)\d\d\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/',$fecha_sol)){
 	form_set_error('fecha_sol',t('Ingresar una fecha de solictud válida'));
 }
 
-if(!preg_match('/^(0[1-9]|[12][0-9]|3[01])\-(0[1-9]|1[012])\-(19|20)\d\d$/',$fecha_disp)){
+if(!preg_match('/^(19|20)\d\d\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/',$fecha_disp)){
 	form_set_error('fecha_disp',t('Ingresar una fecha de disponibilidad válida'));
 }
 
-if(!preg_match('/^(0[1-9]|[12][0-9]|3[01])\-(0[1-9]|1[012])\-(19|20)\d\d$/',$fecha_ini)){
+if(!preg_match('/^(19|20)\d\d\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/',$fecha_ini)){
 	form_set_error('fecha_ini',t('Ingresar una fecha de inicio válida'));
 }
 
-if(!preg_match('/^(0[1-9]|[12][0-9]|3[01])\-(0[1-9]|1[012])\-(19|20)\d\d$/',$fecha_fin)){
+if(!preg_match('/^(19|20)\d\d\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/',$fecha_fin)){
 	form_set_error('fecha_fin',t('Ingresar una fecha de fin válida'));
 }
-*/
+
 if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ]+(\s[A-ZÁÉÍÓÚÜÑ]?[a-záéíóúüñ]+)*$/',$nom_adm)){
 	form_set_error('nom_adm',t('Ingresar un nombre de contacto administrativo válido'));
 }
@@ -485,7 +485,7 @@ if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]
 	form_set_error('puer_acc_web',t('Ingresar un puerto del servicio web válido'));
 }
 
-if(!preg_match('/^((https?\:\/\/)(www\.)?[A-ZÁÉÍÓÚÜÑa-záéíóúüñ0-9\.\_\-\(\)\/?]+)$/',$url_sitio)){
+if(!preg_match('/^((https?\:\/\/)?(www\.)?[A-ZÁÉÍÓÚÜÑa-záéíóúüñ0-9\.\_\-\(\)\/?]+)$/',$url_sitio)){
 	form_set_error('url_sitio',t('Ingresar una url del servicio web  válida'));
 }
 
@@ -497,23 +497,25 @@ if(!preg_match('/^\d{1,}(\.\d{1,})*$/',$ver_web)){
 	form_set_error('ver_web',t('Ingresar una versión del servicio web válido'));
 }
 
-if(!preg_match('/^(([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$/',$ip_bd)){
+//MANEJADOR DE BASE DE DATOS
+
+if(!preg_match('/^((([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$)?/',$ip_bd)){
 	form_set_error('ip_bd',t('Ingresar una ip de base de datos válida'));
 }
 
-if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])/',$puer_acc_bd)){
+if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])?/',$puer_acc_bd)){
 	form_set_error('puer_acc_bd',t('Ingresar un puerto de base de datos válido'));
 }
 
-if(!preg_match('/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+/',$nom_bd)){
+if(!preg_match('/^([a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+)?/',$nom_bd)){
 	form_set_error('nom_bd',t('Ingresar un nombre de base de datos válido'));
 }
 
-if(!preg_match('/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+/',$soft_bd)){
+if(!preg_match('/^([a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+)?/',$soft_bd)){
 	form_set_error('soft_bd',t('Ingresar un software de base de datos válido'));
 }
 
-if(!preg_match('/^\d{1,}(\.\d{1,})*$/',$ver_bd)){
+if(!preg_match('/^(\d{1,}(\.\d{1,})*$)?/',$ver_bd)){
 	form_set_error('ver_bd',t('Ingresar un numero de versión de base de datos válido'));
 }
 
