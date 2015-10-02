@@ -1,6 +1,6 @@
 <?php
 /*
-*Form alta de revisión
+*Form Alta de revisión
 *@author: mvasquez & varteaga
 *@date: 29/09/2015
 */
@@ -18,6 +18,14 @@ function alta_menu() {
   return $items;
 }
 
+function alta_permission() {
+  return array(
+    'Alta/' => array(
+      'title' => t('Permisos para ingresar al formulario de alta de revisiones'),
+      'description' => t('Seleccion de usuarios que pueden tener acceso.'),
+    ),
+  );
+}
 
 function alta_form($form, &$form_submit) {
 	
@@ -543,8 +551,7 @@ $form_submit['values']['ver_bd']=$ver_bd;
 
 //Almacenamiento de datos
 function alta_rev_enviar($form, &$form_submit) {
-	
-
+	$form_state['redirect'] = 'home';
     $nom_org=$form_submit['values']['nom_org'];
     $tipo_org=$form_submit['values']['tipo_org'];
 	$fecha_sol=$form_submit['values']['fecha_sol'];
@@ -608,94 +615,11 @@ function alta_rev_enviar($form, &$form_submit) {
 		'soft_bd' => $ver_bd,  
       ))->execute();
       drupal_set_message(t('Datos personales guardados con éxito.'));
+	  drupal_goto('Lista/');
     }
     catch (Exception $e) {
       $transaccion->rollback();	
-      drupal_set_message(t('Hubo un problema con tu alta. Por favor intente más tarde.'));
+      drupal_set_message(t('Hubo un problema con tu Alta. Por favor intente más tarde.'));
     }
+	
 }
-
-function alta_fin_form($form, &$form_submit){ 
-
-  $leyenda = "hola mundo";
-  
-  $mensaje = "<div> La alta se generó con éxito</div>        
-  ";
-  $form['confirmacion'] = array(
-    '#type' => 'item',
-    '#title' =>$mensaje,    
-  );
-  return $form;  
-}
-
-/*
-function register_replace($cadena=''){
-  $iso = array(
-  	'&aacute;',
-  	'&eacute;',
-  	'&iacute;',
-  	'&oacute;',
-  	'&uacute;',
-  	'&Aacute;',
-	'&Eacute;',
-	'&Iacute;',
-	'&Oacute;',
-	'&Uacute;',
-	'&uuml;',
-	'&Uuml;',
-	'&ntilde;',
-	'&Ntilde;',
-  );
-  $utf = array(
-    'á',
-    'é',
-    'í',
-    'ó',
-    'ú',
-    'Á',
-    'É',
-    'Í',
-    'Ó',
-    'Ú',
-    'ü',
-    'Ü',
-    'ñ',
-    'Ñ',
-  );
- $cadena = str_replace($iso,$utf,$cadena);
- return $cadena;
-} 
-
-function register_formato_fecha($fecha){
-  $meses=array(
-    "1"=>"enero",
-	"2"=>"febrero",
-	"3"=>"marzo",
-	"4"=>"abril",
-	"5"=>"mayo",
-	"6"=>"junio",
-	"7"=>"julio",
-	"8"=>"agosto",
-	"9"=>"septiembre",
-	"10"=>"octubre",
-	"11"=>"noviembre",
-	"12"=>"diciembre"
-  );
-  list($anio,$mes,$dia)=explode("-",$fecha);
-  foreach($meses as $n=>$l){
-    if($mes==$n){
-      return "$dia de $l de $anio";
-	}
-  }
-}
-
-function register_hora_taller($hora_ini,$hora_fin){
-  $h0=explode(":",$hora_ini);
-  $h1=explode(":",$hora_fin);
-  $hora=$h0[0].":".$h0[1]." a ".$h1[0].":".$h1[1];
-  return $hora;
-}
-
-*/
-
-

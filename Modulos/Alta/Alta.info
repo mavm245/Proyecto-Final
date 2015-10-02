@@ -1,5 +1,5 @@
 ;$Id$
-name = Alta
-description = Alta de una nueva solicitud de usuario
-package = Drupal 7 Development
+name = Alta de solicitud.
+description = Alta de una nueva solicitud de usuario.
+package = A PROYECTO MODULES
 core = 7.x
