@@ -28,5 +28,5 @@ puer_acc_bd varchar(20),
 nom_bd varchar(30),
 soft_bd varchar(20),
 ver_bd varchar(5),
-estado_rev varchar(15)
+estado_rev varchar(15) DEFAULT 'Pendiente'
 );
