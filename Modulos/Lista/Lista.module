@@ -1,0 +1,187 @@
+<?php
+/*
+*Form Listado de revisión
+*@author: mvasquez & varteaga
+*@date: 29/09/2015
+*/
+
+function Lista_menu() {
+	
+  $items['Lista'] = array(
+    'title' => 'Lista',
+    'page callback' => 'Lista_main',
+    'access arguments' => array('Lista/'),
+    'access callback' => TRUE,
+    'weight' => 9,
+    'menu_name' => 'main-menu',
+    'options' => array('attributes' => array('class' => 'Lista_main')),
+);
+  
+   $items['Lista/todas'] = array(
+    'title' => 'Todas las solicitudes.',    
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('todas_sol_form'),
+    'access arguments' => array('Lista/todas'),
+  );
+  
+   $items['Lista/pendientes'] = array(
+    'title' => 'Solicitudes Pendientes.',    
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('pendientes_sol_form'),
+    'access arguments' => array('Lista/pendientes'),
+  );
+   
+   $items['Lista/pausadas'] = array(
+    'title' => 'Solicitudes Pausadas.',    
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('pausadas_sol_form'),
+    'access arguments' => array('Lista/pausadas'),
+  );
+  
+   $items['Lista/finalizadas'] = array(
+    'title' => 'Solicitudes Finalizadas.',    
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('finalizadas_sol_form'),
+    'access arguments' => array('Lista/finalizadas'),
+  );
+  
+  return $items;
+}
+
+function Lista_permission() {
+  return array(
+    'Lista/' => array(
+      'title' => t('Permisos para visualizar las listas de revisiones'),
+      'description' => t('Seleccion de usuarios que pueden tener acceso.'),
+    ),
+  );
+}
+
+function Lista_main(){
+			  return t('<ul style="text-align: justify;">
+		  		<li>'.l( t("Listado de todas las solicitudes."),'Lista/mostrar').'</li>
+		  		<li>'.l( t("Listado de solicitudes pendientes."),'Lista/pendientes').'</li>
+		  		<li>'.l( t("Listado de solicitudes pausadas."),'Lista/pausadas').'</li>
+		  		<li>'.l( t("Listado de solicitudes finalizadas"),'Lista/finalizadas').'</li>
+		    	</ul>');		  
+}
+
+
+
+function Lista_registros_estatus_form($form, $form_state){
+	
+	$res = Lista_query_registros_estatus();
+	$headers=$res['headers'];
+	$raws=$res['raws'];
+ 
+ 
+ 	$raws2=array();
+	
+	foreach ($raws as $raw) {
+		$raws2[$raw['ID']]=$raw;
+	}
+ 	#print_r($raws);
+	#var_dump($raws);
+    $leyenda = Lista_main();
+    		    
+    $form['etapa'] = array(
+      '#type' => 'item',
+      '#title' => $leyenda,
+    );
+	 $form['table'] = array
+  (
+    '#type' => 'tableselect',
+    '#header' => $headers,
+    '#options' => $raws2,
+    '#empty' => t('No existen usuarios exentos de pago.'),
+    '#multiple' => TRUE,
+  );
+  $form['submit'] = array
+  (
+    '#type' => 'submit',
+    '#value' => t('Enviar Correo'),
+    '#submit' => array('Lista_registros_estatus_submit'),
+  );
+ 
+  return $form;
+	
+}
+
+function Lista_registros_estatus_submit($form, $form_submit){
+	
+	$values = $form_submit['values'];
+
+	$sel 	= $form_submit['values']['table'];
+  	
+	Lista_estatus_actualizar_costo($sel);
+}
+
+
+function Lista_query_registros_estatus($utf8=1){
+	
+	 db_set_active('congresopriv');
+	  	  $registro = db_select('asistentes_todos', 'a');
+		  $registro -> join('estatus', 'e', 'a.idestatus = e.idestatus');
+	
+		  $registro = $registro -> fields('a', array("idestatus","idasistente","asis_paterno","asis_materno","asis_nombre","asis_correo","asis_monto_evento"))
+		    -> fields('e', array("est_nombre","idestatus"))
+		    -> condition('a.idestatus', 2, '=')
+		    -> orderBy('idasistente', 'ASC')
+		    -> execute()
+			-> fetchAll();
+	  db_set_active('default');
+  
+	  $res = array();
+	  
+      foreach ($registro as $valor) {
+	    array_push($res,get_object_vars($valor));
+  	  }	
+   	  
+	  $array = array();
+	  $array['raws'] =array();
+	  $array['headers'] =array( 'ID'=>'ID','Nombre'=>'Nombre','Correo'=>'Correo','Estado'=>"Estado","Total"=>"Total");
+	  
+	  foreach ($res as $valor) {
+		   
+	  	$array_tmp = array();
+		
+		if(!$utf8){
+		  	$array_tmp["ID"] 				=	utf8_decode($valor['idasistente']);
+			$array_tmp["Nombre"] 			=	utf8_decode($valor['asis_paterno']." ". $valor['asis_materno'] ." ". $valor['asis_nombre']);
+			
+			$array_tmp["Correo"]	 		=	utf8_decode($valor['asis_correo']);	
+			$array_tmp["Estado"] 			=	utf8_decode($valor['est_nombre']);
+			$array_tmp["Total"] 			=	utf8_decode($valor['asis_monto_evento']);
+		}else{
+			$array_tmp["ID"] 				=	($valor['idasistente']);
+			$array_tmp["Nombre"] 			=	($valor['asis_paterno']." ". $valor['asis_materno'] ." ". $valor['asis_nombre']);
+					
+			$array_tmp["Correo"] 			=	($valor['asis_correo']);
+			$array_tmp["Estado"] 			=	$valor["est_nombre"];
+			$array_tmp["Total"] 			=	$valor['asis_monto_evento'];
+		}
+		
+	    array_push($array['raws'],$array_tmp);
+	
+	  }
+	  
+	  return $array;		
+	
+}
+
+function Lista_genera_xls($html,$filename){
+
+      drupal_add_http_header('Content-Type', 'application/vnd.ms-excel; charset=UTF-8');
+	  drupal_add_http_header('Content-Disposition', 'attachment; filename = '.$filename.' .xls');
+	 
+	  // Instead of writing to a file, we write to the output stream.
+	  $fh = fopen('php://output', 'w');
+	 
+	  // Add a header row
+	  fputs($fh, $html);
+	 
+	  // Close the output stream.
+	  fclose($fh);
+		
+	return ;
+}

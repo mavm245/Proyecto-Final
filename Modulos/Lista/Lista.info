@@ -1,0 +1,5 @@
+;$Id$
+name = Listado de solicitud.
+description = Listado de solicitudes disponibles.
+package = A PROYECTO MODULES
+core = 7.x
