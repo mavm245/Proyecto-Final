@@ -499,24 +499,27 @@ if(!preg_match('/^\d{1,}(\.\d{1,})*$/',$ver_web)){
 
 //MANEJADOR DE BASE DE DATOS
 
-if(!preg_match('/^((([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$)?/',$ip_bd)){
-	form_set_error('ip_bd',t('Ingresar una ip de base de datos válida'));
-}
+//if( is_null($ip_bd) && is_null($puer_acc_bd) && is_null($nom_bd) && is_null($soft_bd) && is_null($ver_bd)){
+if( !(empty($ip_bd) && empty($puer_acc_bd) && empty($nom_bd) && empty($soft_bd) && empty($ver_bd))){
+	if(!preg_match('/^((([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$)/',$ip_bd)){
+		form_set_error('ip_bd',t('Ingresar una ip de base de datos válida'));
+	}
 
-if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])?/',$puer_acc_bd)){
-	form_set_error('puer_acc_bd',t('Ingresar un puerto de base de datos válido'));
-}
+	if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])/',$puer_acc_bd)){
+		form_set_error('puer_acc_bd',t('Ingresar un puerto de base de datos válido'));
+	}
 
-if(!preg_match('/^([a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+)?/',$nom_bd)){
-	form_set_error('nom_bd',t('Ingresar un nombre de base de datos válido'));
-}
+	if(!preg_match('/^([a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+)/',$nom_bd)){
+		form_set_error('nom_bd',t('Ingresar un nombre de base de datos válido'));
+	}
 
-if(!preg_match('/^([a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+)?/',$soft_bd)){
-	form_set_error('soft_bd',t('Ingresar un software de base de datos válido'));
-}
+	if(!preg_match('/^([a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+)/',$soft_bd)){
+		form_set_error('soft_bd',t('Ingresar un software de base de datos válido'));
+	}
 
-if(!preg_match('/^(\d{1,}(\.\d{1,})*$)?/',$ver_bd)){
-	form_set_error('ver_bd',t('Ingresar un numero de versión de base de datos válido'));
+	if(!preg_match('/^(\d{1,}(\.\d{1,})*$)/',$ver_bd)){
+		form_set_error('ver_bd',t('Ingresar un numero de versión de base de datos válido'));
+	}
 }
 
 $form_submit['values']['nom_org']=$nom_org;
