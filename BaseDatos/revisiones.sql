@@ -5,7 +5,7 @@
 
 --Cambio de base de datos:--
 
-\c revisiones_drupal_pruebas
+\c revisiones_drupal
 
 --Creación de tablas:--
 
@@ -141,7 +141,7 @@ CREATE TABLE solicitud_contacto(
 CREATE TABLE revision(
 	id_revision serial primary key,
 	id_solicitud integer,
-	--id_auditor integer,
-	FOREIGN KEY (id_solicitud) REFERENCES solicitud(id_solicitud)
-	--FOREIGN KEY(id_auditor) REFERENCES aud(id_auditor)
+	id_auditor integer,
+	FOREIGN KEY (id_solicitud) REFERENCES solicitud(id_solicitud),
+	FOREIGN KEY(id_auditor) REFERENCES field_data_field_id_auditor(field_id_auditor_value)
 );
