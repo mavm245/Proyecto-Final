@@ -141,7 +141,13 @@ CREATE TABLE IF NOT EXISTS solicitud_contacto(
 CREATE TABLE IF NOT EXISTS revision(
 	id_revision serial primary key,
 	id_solicitud integer,
-	id_auditor integer,
+--	id_auditor integer,
+	entity_type varchar(128),
+	entity_id bigint,
+	deleted smallint,
+	delta bigint,
+	language varchar(32),
+--	FOREIGN KEY
 	FOREIGN KEY (id_solicitud) REFERENCES solicitud(id_solicitud),
-	FOREIGN KEY(id_auditor) REFERENCES field_data_field_id_auditor(field_id_auditor_value)
+	FOREIGN KEY(entity_type, entity_id, deleted, delta, language) REFERENCES field_data_field_id_auditor(entity_type, entity_id, deleted, delta, language)
 );
