@@ -149,5 +149,5 @@ CREATE TABLE IF NOT EXISTS revision(
 	language varchar(32),
 --	FOREIGN KEY
 	FOREIGN KEY (id_solicitud) REFERENCES solicitud(id_solicitud),
-	FOREIGN KEY(entity_type, entity_id, deleted, delta, language) REFERENCES field_data_field_id_auditor(entity_type, entity_id, deleted, delta, language)
+	FOREIGN KEY (entity_type, entity_id, deleted, delta, language) REFERENCES field_data_field_nombre_auditor(entity_type, entity_id, deleted, delta, language)
 );
