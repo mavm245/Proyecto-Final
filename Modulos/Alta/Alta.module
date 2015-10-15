@@ -41,13 +41,45 @@ function alta_form($form, &$form_submit) {
 
 
 function alta_rev_form($form,&$form_submit) {
+	$format = 'Y-m-d';
+	db_set_active('default');
 	
+	$tipos=db_select('tipo_organizacion','t')
+  			->fields('t',array('id_tiporg','tipo_nombre'))
+			->orderBy('tipo_nombre','ASC')
+			->execute()
+			->fetchAllKeyed();
+
+	$so_serv=db_select('servidor_so','t')
+  			->fields('t',array('id_so','nombre_so'))
+			->orderBy('nombre_so','ASC')
+			->execute()
+			->fetchAllKeyed();
+	
+	$soft_base=db_select('sistema_manejador','t')
+  			->fields('t',array('id_sistema','nombre_rdbms'))
+			->orderBy('nombre_rdbms','ASC')
+			->execute()
+			->fetchAllKeyed();
+	
+	$soft_serv=db_select('soft_servidor','t')
+  			->fields('t',array('id_soft','software_nombre'))
+			->orderBy('software_nombre','ASC')
+			->execute()
+			->fetchAllKeyed();
+			
+	$proto_acc=db_select('protos_acceso','t')
+  			->fields('t',array('id_proto','protocolo'))
+			->orderBy('protocolo','ASC')
+			->execute()
+			->fetchAllKeyed();
+			
 	$form['#attached']['css'] = array(
 	drupal_get_path('module','Alta') . '/Alta.css'
 	);
 	
 	$nom_org='';
-	$tipo_org='';
+	#$tipo_org='';
 	$fecha_sol='';
 	$fecha_disp='';
 	$fecha_ini='';
@@ -58,21 +90,21 @@ function alta_rev_form($form,&$form_submit) {
 	$nom_tec='';
 	$correo_tec='';
 	$tel_tec='';
-	$sist_op='';
+	#$sist_op='';
 	$sist_op_ver='';
 	$ip_sitio='';
-	$prot_acc_rem='';
+	#$prot_acc_rem='';
 	$puer_acc_rem='';
 	$dir_usua='';
 	$ip_web='';
 	$puer_acc_web='';
 	$url_sitio='';
-	$soft_web='';
+	#$soft_web='';
 	$ver_web='';
 	$ip_bd='';
 	$puer_acc_bd='';
 	$nom_bd='';
-	$soft_bd='';
+	#$soft_bd='';
 	$ver_bd='';
 	
   $mensaje = "<div>Captura los datos que se encuentran en la solicitud de revisión.<d/iv><div class='categoria'><br>INFORMACION GENERAL</div>";  
@@ -94,15 +126,18 @@ function alta_rev_form($form,&$form_submit) {
     '#default_value' => $nom_org,
     '#filters' => array('trim','strip_tags'),
   );
+  
+
+  
   $form['tipo_org'] = array(
     '#title' => t('Tipo de organización:'),
-    '#type' => 'textfield',
+    '#type' => 'select',
+    '#options' => $tipos,
     '#required' => TRUE,
-    '#default_value' => $tipo_org,
-    '#filters' => array('trim','strip_tags'),
+    '#empty_option' => '-Seleccione-',
   );
   
-  $info2 = "<div class='apartado'><u>Periodo de revisión.</u></div>";  
+  $info2 = "<div cl,ass='apartado'><u>Periodo de revisión.</u></div>";  
   $form['info2'] = array(
     '#type' => 'item',
     '#title' => $info2,
@@ -110,38 +145,42 @@ function alta_rev_form($form,&$form_submit) {
   
   $form['fecha_sol'] = array(
     '#title' => t('Fecha de solicitud:'),
-    '#type' => 'textfield',
+    '#type' => 'date_popup',
     '#required' => TRUE,
-    '#description' => t('aaaa-mm-dd'),
-    '#default_value' => $fecha_sol,
+    '#date_format' => $format,
+    '#date_label_position' => 'within',
     '#filters' => array('trim','strip_tags'),
+    '#default_value' => $fecha_sol,
   );
   
    $form['fecha_disp'] = array(
     '#title' => t('Fecha de disponibilidad de la CSI/UNAM-CERT'),
-    '#type' => 'textfield',
+    '#type' => 'date_popup',
     '#required' => TRUE,
-    '#description' => t('aaaa-mm-dd'),
-    '#default_value' => $fecha_disp,
+    '#date_format' => $format,
+    '#date_label_position' => 'within',
     '#filters' => array('trim','strip_tags'),
+    '#default_value' => $fecha_disp,
   );
   
    $form['fecha_ini'] = array(
     '#title' => t('Fecha de inicio de la revisión:'),
-    '#type' => 'textfield',
+    '#type' => 'date_popup',
     '#required' => TRUE,
-    '#description' => t('aaaa-mm-dd'),
-    '#default_value' => $fecha_ini,
+    '#date_format' => $format,
+    '#date_label_position' => 'within',
     '#filters' => array('trim','strip_tags'),
+    '#default_value' => $fecha_ini,
   );
   
    $form['fecha_fin'] = array(
     '#title' => t('Fecha de fin de la revisión:'),
-    '#type' => 'textfield',
+    '#type' => 'date_popup',
     '#required' => TRUE,
-    '#description' => t('aaaa-mm-dd'),
-    '#default_value' => $fecha_fin,
+    '#date_format' => $format,
+    '#date_label_position' => 'within',
     '#filters' => array('trim','strip_tags'),
+    '#default_value' => $fecha_fin,
   );
 
   $info3 = "<div class='categoria'>DATOS DE CONTACTO</div>";  
@@ -221,10 +260,10 @@ function alta_rev_form($form,&$form_submit) {
   
   $form['sist_op'] = array(
     '#title' => t('Sistema Operativo:'),
-    '#type' => 'textfield',
+    '#type' => 'select',
+    '#options' => $so_serv,
     '#required' => TRUE,
-    '#default_value' => $sist_op,
-    '#filters' => array('trim','strip_tags'),
+    '#empty_option' => '-Seleccione-',
   );
   
   
@@ -246,10 +285,10 @@ function alta_rev_form($form,&$form_submit) {
   
   $form['prot_acc_rem'] = array(
     '#title' => t('Protocolo de acceso remoto:'),
-    '#type' => 'textfield',
+    '#type' => 'select',
+    '#options' => $proto_acc,
     '#required' => TRUE,
-    '#default_value' => $prot_acc_rem,
-    '#filters' => array('trim','strip_tags'),
+    '#empty_option' => '-Seleccione-',
   );
   
   $form['puer_acc_rem'] = array(
@@ -300,10 +339,10 @@ function alta_rev_form($form,&$form_submit) {
   
   $form['soft_web'] = array(
     '#title' => t('Sofware del servidor web:'),
-    '#type' => 'textfield',
+    '#type' => 'select',
+    '#options' => $soft_serv,
     '#required' => TRUE,
-    '#default_value' => $soft_web,
-    '#filters' => array('trim','strip_tags'),
+    '#empty_option' => '-Seleccione-',
   );
   
   $form['ver_web'] = array(
@@ -346,10 +385,10 @@ function alta_rev_form($form,&$form_submit) {
   
   $form['soft_bd'] = array(
     '#title' => t('Sofware del servidor de base de datos:'),
-    '#type' => 'textfield',
+    '#type' => 'select',
+    '#options' => $soft_base,
     '#required' => FALSE,
-    '#default_value' => $soft_bd,
-    '#filters' => array('trim','strip_tags'),
+    '#empty_option' => '-Seleccione-',
   );
   
   $form['ver_bd'] = array(
@@ -375,7 +414,7 @@ function alta_rev_validar($form, &$form_submit){
 	//FILTER_SANATIZE_STRING -> Quita etiquetas y elimina o codifica los caracteres especiales de una cadena.
 	//strip_tags -> Retira las etiquetas HTML y PHP de un string.
   	$nom_org=filter_var(strip_tags($form_submit['values']['nom_org']),FILTER_SANITIZE_STRING);
-    $tipo_org=filter_var(strip_tags($form_submit['values']['tipo_org']),FILTER_SANITIZE_STRING);
+    $tipo_org= $form_submit['values']['tipo_org'];
 	$fecha_sol=filter_var(strip_tags($form_submit['values']['fecha_sol']),FILTER_SANITIZE_STRING);
 	$fecha_disp=filter_var(strip_tags($form_submit['values']['fecha_disp']),FILTER_SANITIZE_STRING);
 	$fecha_ini=filter_var(strip_tags($form_submit['values']['fecha_ini']),FILTER_SANITIZE_STRING);
@@ -386,21 +425,21 @@ function alta_rev_validar($form, &$form_submit){
 	$nom_tec=filter_var(strip_tags($form_submit['values']['nom_con_tec']),FILTER_SANITIZE_STRING);
 	$correo_tec=filter_var(strip_tags($form_submit['values']['correo_con_tec']),FILTER_SANITIZE_STRING);
 	$tel_tec=filter_var(strip_tags($form_submit['values']['tel_con_tec']));
-	$sist_op=filter_var(strip_tags($form_submit['values']['sist_op']),FILTER_SANITIZE_STRING);
+	$sist_op=$form_submit['values']['sist_op'];
 	$sist_op_ver=filter_var(strip_tags($form_submit['values']['sist_op_ver']),FILTER_SANITIZE_STRING);
 	$ip_sitio=filter_var(strip_tags($form_submit['values']['ip_sitio']),FILTER_SANITIZE_STRING);
-	$prot_acc_rem=filter_var(strip_tags($form_submit['values']['prot_acc_rem']),FILTER_SANITIZE_STRING);
+	$prot_acc_rem=$form_submit['values']['prot_acc_rem'];
 	$puer_acc_rem=filter_var(strip_tags($form_submit['values']['puer_acc_rem']),FILTER_SANITIZE_STRING);
 	$dir_usua=filter_var(strip_tags($form_submit['values']['dir_usua']),FILTER_SANITIZE_STRING);
 	$ip_web=filter_var(strip_tags($form_submit['values']['ip_web']),FILTER_SANITIZE_STRING);
 	$puer_acc_web=filter_var(strip_tags($form_submit['values']['puer_acc_web']),FILTER_SANITIZE_STRING);
 	$url_sitio=filter_var(strip_tags($form_submit['values']['url_sitio']),FILTER_SANITIZE_STRING);
-	$soft_web=filter_var(strip_tags($form_submit['values']['soft_web']),FILTER_SANITIZE_STRING);
+	$soft_web=$form_submit['values']['soft_web'];
 	$ver_web=filter_var(strip_tags($form_submit['values']['ver_web']),FILTER_SANITIZE_STRING);
 	$ip_bd=filter_var(strip_tags($form_submit['values']['ip_bd']),FILTER_SANITIZE_STRING);
 	$puer_acc_bd=filter_var(strip_tags($form_submit['values']['puer_acc_bd']),FILTER_SANITIZE_STRING);
 	$nom_bd=filter_var(strip_tags($form_submit['values']['nom_bd']),FILTER_SANITIZE_STRING);
-	$soft_bd=filter_var(strip_tags($form_submit['values']['soft_bd']),FILTER_SANITIZE_STRING);
+	$soft_bd=$form_submit['values']['soft_bd'];
 	$ver_bd=filter_var(strip_tags($form_submit['values']['ver_bd']),FILTER_SANITIZE_STRING);
  
 
@@ -409,9 +448,9 @@ if(!preg_match('/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+/',$nom_org)){
 	form_set_error('nom_org',t('Ingresar un nombre de organización válido'));
 }
 
-if(!preg_match('/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+/',$tipo_org)){
+/*if(!preg_match('/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+/',$tipo_org)){
 	form_set_error('tipo_org',t('Ingresar un tipo de organización válido'));
-}
+}*/
 
 if(!preg_match('/^(19|20)\d\d\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/',$fecha_sol)){
 	form_set_error('fecha_sol',t('Ingresar una fecha de solictud válida'));
@@ -452,10 +491,10 @@ if(!preg_match('/^[a-zA-Z][a-zA-Z0-9_\-]?(\.?[a-zA-Z0-9_\-])+@[a-z0-9-]+(.[a-z0-
 if(!preg_match('/^(044\ ?)?[0-9]{8,10}$/',$tel_tec)){
 	form_set_error('tel_tec',t('Ingresar un teléfono de contacto técnico válido'));
 }
-
+/*
 if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ\/\.\ ]+/',$sist_op)){
 	form_set_error('sist_op',t('Ingresar un sistema operativo válido'));
-}
+}*/
 
 if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ\/\.\ 0-9]+/',$sist_op_ver)){
 	form_set_error('sist_op',t('Ingresar una versión de sistema operativo válida'));
@@ -464,10 +503,9 @@ if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ\/\.\ 0-9]+/',$sist_op_ver)
 if(!preg_match('/^(([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$/',$ip_sitio)){
 	form_set_error('ip_sitio',t('Ingresar una dirección IP del sitio válida'));
 }
-
+/*
 if(!preg_match('/^[a-zA-Z][a-zA-Z0-9\- ]+/',$prot_acc_rem)){
-	form_set_error('prot_acc_rem',t('Ingresar un protocolo válido'));
-}
+	form_set_err*/
 
 if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])/',$puer_acc_rem)){
 	form_set_error('puer_acc_rem',t('Ingresar un puerto de acceso válido'));
@@ -512,10 +550,10 @@ if( !(empty($ip_bd) && empty($puer_acc_bd) && empty($nom_bd) && empty($soft_bd) 
 	if(!preg_match('/^([a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+)/',$nom_bd)){
 		form_set_error('nom_bd',t('Ingresar un nombre de base de datos válido'));
 	}
-
+/*
 	if(!preg_match('/^([a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+)/',$soft_bd)){
 		form_set_error('soft_bd',t('Ingresar un software de base de datos válido'));
-	}
+	}*/
 
 	if(!preg_match('/^(\d{1,}(\.\d{1,})*$)/',$ver_bd)){
 		form_set_error('ver_bd',t('Ingresar un numero de versión de base de datos válido'));
@@ -556,7 +594,7 @@ $form_submit['values']['ver_bd']=$ver_bd;
 
 //Almacenamiento de datos
 function alta_rev_enviar($form, &$form_submit) {
-	$form_state['redirect'] = 'home';
+	
     $nom_org=$form_submit['values']['nom_org'];
     $tipo_org=$form_submit['values']['tipo_org'];
 	$fecha_sol=$form_submit['values']['fecha_sol'];
@@ -589,35 +627,9 @@ function alta_rev_enviar($form, &$form_submit) {
 
   	$transaccion = db_transaction();
   	try {
-      $asistente = db_insert('solicitud')->fields(array(
-        'nom_org' => $nom_org,
-		'tipo_org' => $tipo_org,
-		'fecha_sol' => $fecha_sol,
-		'fecha_disp' => $fecha_disp,
-		'fecha_ini' => $fecha_ini,
-		'fecha_fin' => $fecha_fin,
-		'nom_adm' => $nom_adm,
-		'correo_adm' => $correo_adm,
-		'tel_adm' => $tel_adm,
-		'nom_tec' => $nom_tec,
-		'correo_tec' => $correo_tec,
-		'tel_tec' => $tel_tec,
-		'sist_op' => $sist_op,
-		'sist_op_ver' => $sist_op_ver,
-		'ip_sitio' => $ip_sitio,
-		'prot_acc_rem' => $prot_acc_rem,
-		'puer_acc_rem' => $puer_acc_rem,
-		'dir_usua' => $dir_usua,
-		'ip_web' => $ip_web,
-		'puer_acc_web' => $puer_acc_web,
-		'url_sitio' => $url_sitio,
-		'soft_web' => $soft_web,
-		'ver_web' => $ver_web,
-		'ip_bd' => $ip_bd,
-		'puer_acc_bd' => $puer_acc_bd,
-		'nom_bd' => $nom_bd,
-		'soft_bd' => $soft_bd,
-		'soft_bd' => $ver_bd,  
+      $asistente = db_insert('organizacion')->fields(array(
+        'org_nombre' => $nom_org,
+		'id_tiporg' => $tipo_org,
       ))->execute();
       drupal_set_message(t('Datos personales guardados con éxito.'));
 	  drupal_goto('Lista/');
