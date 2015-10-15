@@ -151,3 +151,8 @@ CREATE TABLE IF NOT EXISTS revision(
 	FOREIGN KEY (id_solicitud) REFERENCES solicitud(id_solicitud),
 	FOREIGN KEY (entity_type, entity_id, deleted, delta, language) REFERENCES field_data_field_nombre_auditor(entity_type, entity_id, deleted, delta, language)
 );
+
+
+--Cambio de permisos
+
+GRANT ALL ON tipo_organizacion, organizacion, tipo_contacto, contacto, sistema_manejador, manejador_db, protos_acceso, servidor_so, soft_servidor, servidor_web, solicitud, solicitud_contacto, revision TO adm_revbd;
