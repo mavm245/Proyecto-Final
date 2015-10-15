@@ -1,0 +1,5 @@
+;$Id$
+name = Genera Word y PDF.
+description = Genera el reporte a formato Word y PDF
+package = A PROYECTO MODULES
+core = 7.x
