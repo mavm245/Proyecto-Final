@@ -144,18 +144,27 @@ CREATE TABLE IF NOT EXISTS solicitud_contacto(
 CREATE TABLE IF NOT EXISTS revision(
 	id_revision serial primary key,
 	id_solicitud integer,
---	id_auditor integer,
-	entity_type varchar(128),
-	entity_id bigint,
-	deleted smallint,
-	delta bigint,
-	language varchar(32),
---	FOREIGN KEY
+	nid_auditor integer,
 	FOREIGN KEY (id_solicitud) REFERENCES solicitud(id_solicitud),
-	FOREIGN KEY (entity_type, entity_id, deleted, delta, language) REFERENCES field_data_field_nombre_auditor(entity_type, entity_id, deleted, delta, language)
+	FOREIGN KEY (nid_auditor) REFERENCES node(nid)
 );
 
+--hall_rev
+CREATE TABLE IF NOT EXISTS hall_rev(
+	id_revision serial,
+	nid_hallazgo serial,
+	FOREIGN KEY (id_revision) REFERENCES revision(id_revision),
+	FOREIGN KEY (nid_hallazgo) REFERENCES node(nid)
+);
+
+--rev_herr
+CREATE TABLE IF NOT EXISTS rev_herr(
+	id_revision serial,
+	nid_herramienta serial,
+	FOREIGN KEY (id_revision) REFERENCES revision(id_revision),
+	FOREIGN KEY (nid_herramienta) REFERENCES node(nid)
+);
 
 --Cambio de permisos
 
-GRANT ALL ON tipo_organizacion, organizacion, tipo_contacto, contacto, sistema_manejador, manejador_db, protos_acceso, servidor_so, soft_servidor, servidor_web, solicitud, solicitud_contacto, revision TO adm_revbd;
+GRANT ALL ON tipo_organizacion, organizacion, tipo_contacto, contacto, sistema_manejador, manejador_db, protos_acceso, servidor_so, soft_servidor, servidor_web, solicitud, solicitud_contacto, revision, hall_rev, rev_herr TO adm_revbd;
