@@ -276,7 +276,7 @@ function alta_rev_form($form,&$form_submit) {
   );
   
   $form['ip_sitio'] = array(
-    '#title' => t('Direccion(es) IP:'),
+    '#title' => t('Direccion IP:'),
     '#type' => 'textfield',
     '#required' => TRUE,
     '#default_value' => $ip_sitio,
@@ -300,7 +300,7 @@ function alta_rev_form($form,&$form_submit) {
   );
   
   $form['dir_usua'] = array(
-    '#title' => t('Directorio del usuario'),
+    '#title' => t('Directorio de aplicacion (Document root)'),
     '#type' => 'textfield',
     '#required' => TRUE,
     '#default_value' => $dir_usua,
@@ -314,11 +314,12 @@ function alta_rev_form($form,&$form_submit) {
   );
   
   $form['ip_web'] = array(
-    '#title' => t('Direccion(es) IP del servicio web:'),
+    '#title' => t('Direccion IP del servicio web:'),
     '#type' => 'textfield',
-    '#required' => TRUE,
+    '#required' => FALSE,
     '#default_value' => $ip_web,
     '#filters' => array('trim','strip_tags'),
+    '#disabled' => TRUE,
   );
   
   $form['puer_acc_web'] = array(
@@ -514,10 +515,10 @@ if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]
 if(!preg_match('/^(\/[A-ZÁÉÍÓÚÜÑa-záéíóúüñ\.\ \/?]+)/',$dir_usua)){
 	form_set_error('dir_usua',t('Ingresar un directorio válido'));
 }
-
+/*
 if(!preg_match('/^(([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$/',$ip_web)){
 	form_set_error('ip_web',t('Ingresar un dirección IP del servicio web válida'));
-}
+}*/
 
 if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])/',$puer_acc_web)){
 	form_set_error('puer_acc_web',t('Ingresar un puerto del servicio web válido'));
@@ -627,16 +628,144 @@ function alta_rev_enviar($form, &$form_submit) {
 
   	$transaccion = db_transaction();
   	try {
-      $asistente = db_insert('organizacion')->fields(array(
+      $organizacion = db_insert('organizacion')->fields(array(
         'org_nombre' => $nom_org,
 		'id_tiporg' => $tipo_org,
       ))->execute();
-      drupal_set_message(t('Datos personales guardados con éxito.'));
-	  drupal_goto('Lista/');
+	
+	$orga=db_select('organizacion','t')
+  			->fields('t')
+			->orderBy('id_organizacion','DESC')
+			->execute()
+			->fetchAssoc();
+	 	$org = $orga['id_organizacion'];
+		
+      $contacto1 = db_insert('contacto')->fields(array(
+    	'cont_nombre' => $nom_adm,
+		'cont_correo' => $correo_adm,
+		'cont_tel' => $tel_adm,
+		'id_tipo_contacto' => '1',
+      ))->execute();
+	  
+	  $cont1=db_select('contacto','t')
+  			->fields('t')
+			->orderBy('id_contacto','DESC')
+			->execute()
+			->fetchAssoc();
+	 	$c1 = $cont1['id_contacto'];
+      
+	 $contacto2 = db_insert('contacto')->fields(array(
+        'cont_nombre' => $nom_tec,
+		'cont_correo' => $correo_tec,
+		'cont_tel' => $tel_tec,
+		'id_tipo_contacto' => '2',
+      ))->execute();
+	  
+	   $cont2=db_select('contacto','t')
+  			->fields('t')
+			->orderBy('id_contacto','DESC')
+			->execute()
+			->fetchAssoc();
+	 	$c2 = $cont2['id_contacto'];
+	  
+	 if( !(empty($ip_bd) && empty($puer_acc_bd) && empty($nom_bd) && empty($soft_bd) && empty($ver_bd))){
+	 $manejador = db_insert('manejador_db')->fields(array(
+        'id_sistema' => $soft_bd,
+        'rdbms_ver' => $ver_bd,
+        'rdbms_ip' => $ip_bd,
+        'rdbms_puerto' => $puer_acc_bd,
+        'rdbms_nom' => $nom_bd,
+      ))->execute();
+	 }
+
+	 $servidor_web = db_insert('servidor_web')->fields(array(
+        'id_so' => $sist_op,
+        'serweb_ver' => $sist_op_ver,
+        'id_proto' => $prot_acc_rem,
+        'acceso_puerto' => $puer_acc_rem,
+        'ip_serweb' => $ip_sitio
+      ))->execute();
+	 
+	 $server=db_select('servidor_web','t')
+  			->fields('t')
+			->orderBy('id_serweb','DESC')
+			->execute()
+			->fetchAssoc();
+	 	$test = $server['id_serweb'];
+	 
+	  $base=db_select('manejador_db','t')
+  			->fields('t')
+			->orderBy('id_rdbms','DESC')
+			->execute()
+			->fetchAssoc();
+	 	$bas = $base['id_rdbms'];
+	 
+	 if( !(empty($ip_bd) && empty($puer_acc_bd) && empty($nom_bd) && empty($soft_bd) && empty($ver_bd))){
+	 	$sitio_web = db_insert('sitio_web')->fields(array(
+        'id_soft' => $soft_web,
+        'sitweb_vers' => $ver_web,
+        'id_serweb' => $test,
+        'doc_root' => $dir_usua,
+        'id_rdbms' => $bas,
+      ))->execute();
+	 }else{
+	 	 $sitio_web = db_insert('sitio_web')->fields(array(
+        'id_soft' => $soft_web,
+        'sitweb_vers' => $ver_web,
+        'id_serweb' => $test,
+        'doc_root' => $dir_usua,
+      ))->execute();
+	 }	
+	  
+	 
+	  $sitio=db_select('sitio_web','t')
+  			->fields('t')
+			->orderBy('id_sitweb','DESC')
+			->execute()
+			->fetchAssoc();
+	 	$test1 = $sitio['id_sitweb'];
+	
+	$url_web= db_insert('url_web')->fields(array(
+        'url_link' => $url_sitio,
+        'id_sitweb' => $test1,
+      ))->execute();
+	
+	$puertos_web= db_insert('puertos_web')->fields(array(
+        'puerto_web' => $puer_acc_web,
+        'id_sitweb' => $test1,
+      ))->execute(); 
+	  
+	$solcitud= db_insert('solicitud')->fields(array(
+        'id_organizacion' => $org,
+        'fecha_sol' => $fecha_sol,
+        'fecha_disp' => $fecha_disp,
+        'fecha_ini' => $fecha_ini,
+        'fecha_fin' => $fecha_fin,
+        'id_sitweb' => $test1,
+      ))->execute(); 	
+	 
+	 $sol1=db_select('solicitud','t')
+  			->fields('t')
+			->orderBy('id_solicitud','DESC')
+			->execute()
+			->fetchAssoc();
+	 	$sol = $sol1['id_solicitud'];
+		
+	$sol_cont= db_insert('solicitud_contacto')->fields(array(
+        'id_solicitud' => $sol,
+        'id_contacto' => $c1
+      ))->execute(); 		
+	
+	$sol_cont= db_insert('solicitud_contacto')->fields(array(
+        'id_solicitud' => $sol,
+        'id_contacto' => $c2
+      ))->execute(); 
+	  
+	drupal_set_message(t('Datos Almacenados correctamente'));
     }
     catch (Exception $e) {
       $transaccion->rollback();	
-      drupal_set_message(t('Hubo un problema con tu Alta. Por favor intente más tarde.'));
+      drupal_set_error(t('Hubo un problema. Por favor intente más tarde.'));
     }
 	
 }
