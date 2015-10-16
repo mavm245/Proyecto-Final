@@ -20,30 +20,10 @@ function Lista_menu() {
    $items['Lista/todas'] = array(
     'title' => 'Todas las solicitudes.',    
 	'page callback' => 'drupal_get_form',
-    'page arguments' => array('todas_sol_form'),
+    'page arguments' => array('Lista_solicitudes_form'),
     'access arguments' => array('Lista/todas'),
   );
-  
-   $items['Lista/pendientes'] = array(
-    'title' => 'Solicitudes Pendientes.',    
-	'page callback' => 'drupal_get_form',
-    'page arguments' => array('pendientes_sol_form'),
-    'access arguments' => array('Lista/pendientes'),
-  );
-   
-   $items['Lista/pausadas'] = array(
-    'title' => 'Solicitudes Pausadas.',    
-	'page callback' => 'drupal_get_form',
-    'page arguments' => array('pausadas_sol_form'),
-    'access arguments' => array('Lista/pausadas'),
-  );
-  
-   $items['Lista/finalizadas'] = array(
-    'title' => 'Solicitudes Finalizadas.',    
-	'page callback' => 'drupal_get_form',
-    'page arguments' => array('finalizadas_sol_form'),
-    'access arguments' => array('Lista/finalizadas'),
-  );
+
   
   return $items;
 }
@@ -59,76 +39,46 @@ function Lista_permission() {
 
 function Lista_main(){
 			  return t('<ul style="text-align: justify;">
-		  		<li>'.l( t("Listado de todas las solicitudes."),'Lista/mostrar').'</li>
-		  		<li>'.l( t("Listado de solicitudes pendientes."),'Lista/pendientes').'</li>
-		  		<li>'.l( t("Listado de solicitudes pausadas."),'Lista/pausadas').'</li>
-		  		<li>'.l( t("Listado de solicitudes finalizadas"),'Lista/finalizadas').'</li>
+		  		<li>'.l( t("Listado de todas las solicitudes."),'Lista/todas').'</li>
 		    	</ul>');		  
 }
 
 
 
-function Lista_registros_estatus_form($form, $form_state){
+function Lista_solicitudes_form($form, $form_state){
 	
-	$res = Lista_query_registros_estatus();
+	$res = Lista_query_solicitud();
 	$headers=$res['headers'];
 	$raws=$res['raws'];
- 
- 
  	$raws2=array();
-	
 	foreach ($raws as $raw) {
 		$raws2[$raw['ID']]=$raw;
 	}
- 	#print_r($raws);
-	#var_dump($raws);
     $leyenda = Lista_main();
     		    
     $form['etapa'] = array(
       '#type' => 'item',
       '#title' => $leyenda,
     );
-	 $form['table'] = array
-  (
+	 $form['table'] = array(
     '#type' => 'tableselect',
     '#header' => $headers,
     '#options' => $raws2,
-    '#empty' => t('No existen usuarios exentos de pago.'),
-    '#multiple' => TRUE,
-  );
-  $form['submit'] = array
-  (
-    '#type' => 'submit',
-    '#value' => t('Enviar Correo'),
-    '#submit' => array('Lista_registros_estatus_submit'),
-  );
- 
-  return $form;
+    '#empty' => t('No existen solicitudes'),
+    '#multiple' => FALSE,
+  	);
 	
+	$form['submit'] = array(
+      '#value' => 'Generar documento',
+      '#type' => 'submit',
+      '#submit' => array('Lista_generar'),
+    );
+  return $form;	
 }
 
-function Lista_registros_estatus_submit($form, $form_submit){
+function Lista_query_solicitud(){
 	
-	$values = $form_submit['values'];
-
-	$sel 	= $form_submit['values']['table'];
-  	
-	Lista_estatus_actualizar_costo($sel);
-}
-
-
-function Lista_query_registros_estatus($utf8=1){
-	
-	 db_set_active('congresopriv');
-	  	  $registro = db_select('asistentes_todos', 'a');
-		  $registro -> join('estatus', 'e', 'a.idestatus = e.idestatus');
-	
-		  $registro = $registro -> fields('a', array("idestatus","idasistente","asis_paterno","asis_materno","asis_nombre","asis_correo","asis_monto_evento"))
-		    -> fields('e', array("est_nombre","idestatus"))
-		    -> condition('a.idestatus', 2, '=')
-		    -> orderBy('idasistente', 'ASC')
-		    -> execute()
-			-> fetchAll();
+	  $registro = db_query('SELECT s.id_solicitud, uw.url_link, s.fecha_ini, s.fecha_fin FROM solicitud s, sitio_web sitw, url_web uw where s.id_sitweb = sitw.id_sitweb and sitw.id_sitweb = uw.id_sitweb;');
 	  db_set_active('default');
   
 	  $res = array();
@@ -139,34 +89,20 @@ function Lista_query_registros_estatus($utf8=1){
    	  
 	  $array = array();
 	  $array['raws'] =array();
-	  $array['headers'] =array( 'ID'=>'ID','Nombre'=>'Nombre','Correo'=>'Correo','Estado'=>"Estado","Total"=>"Total");
+	  $array['headers'] =array( 'ID'=>'ID','URL_Sitio'=>'URL_Sitio','Fecha_Inicio'=>'Fecha_Inicio','Fecha_Fin'=>"Fecha_Fin");
 	  
-	  foreach ($res as $valor) {
-		   
+	  foreach ($res as $valor) {  
 	  	$array_tmp = array();
-		
-		if(!$utf8){
-		  	$array_tmp["ID"] 				=	utf8_decode($valor['idasistente']);
-			$array_tmp["Nombre"] 			=	utf8_decode($valor['asis_paterno']." ". $valor['asis_materno'] ." ". $valor['asis_nombre']);
-			
-			$array_tmp["Correo"]	 		=	utf8_decode($valor['asis_correo']);	
-			$array_tmp["Estado"] 			=	utf8_decode($valor['est_nombre']);
-			$array_tmp["Total"] 			=	utf8_decode($valor['asis_monto_evento']);
-		}else{
-			$array_tmp["ID"] 				=	($valor['idasistente']);
-			$array_tmp["Nombre"] 			=	($valor['asis_paterno']." ". $valor['asis_materno'] ." ". $valor['asis_nombre']);
-					
-			$array_tmp["Correo"] 			=	($valor['asis_correo']);
-			$array_tmp["Estado"] 			=	$valor["est_nombre"];
-			$array_tmp["Total"] 			=	$valor['asis_monto_evento'];
-		}
-		
+		  	$array_tmp["ID"] 				= $valor['id_solicitud'];
+			$array_tmp["URL_Sitio"] 		= $valor['url_link'];
+			$array_tmp["Fecha_Inicio"]	 	= $valor['fecha_ini'];	
+			$array_tmp["Fecha_Fin"] 		= $valor['fecha_fin'];
 	    array_push($array['raws'],$array_tmp);
-	
 	  }
-	  
 	  return $array;		
 	
+}
+function Lista_generar($form, &$form_submit) {
 }
 
 function Lista_genera_xls($html,$filename){
