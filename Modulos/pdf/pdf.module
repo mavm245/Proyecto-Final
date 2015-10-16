@@ -1,0 +1,663 @@
+<?php
+# vim: encoding=utf-8
+# aptitude install php-fpdf libfpdf-tpl-php 
+/*
+*Making pdf module drupal
+*Filename: pdf.module
+*Require: correo.module 
+*@author: mbarrera
+*@date: 20/06/2014
+*/
+//necesario importar la biblioteca an siendo instalada por paquetes 
+require('fpdf/fpdf.php');
+/*
+function pdf_menu() {
+  $items['pdf'] = array(
+    'title' => 'making pdf',
+    'access callback' => TRUE,
+    'page callback' => 'pdf_maker',
+    );
+  return $items;
+}
+*/
+
+function pdf_maker($idasistente = '', $priv=0,$out = "S") {	//$idasistente=2267;//2319//2267//2320//2443
+	//$idasistente=2267;
+	$asistente = pdf_getAsistente($idasistente,$priv);
+    $factura   = pdf_getFactura($idasistente,$priv);
+    $fechas = pdf_getFechaPromo();
+    $registro = pdf_getTalleres($idasistente,$priv);
+	
+	$fechasPromociones= pdf_getFechasPromo();	
+	#$talleresTotalA=getCostototal($registro,$asistente['idtipoasis'],4);
+	$talleresTotalB=getCostototal($registro,$asistente['idtipoasis'],5);
+	$talleresTotalC=getCostototal($registro,$asistente['idtipoasis'],6);
+	$mycount = mycount($registro);
+	
+	$es=intval(3);
+	#$sng=intval(10);
+	$sng=intval(8);
+	$cas=intval(10);
+	$pdf = new FPDF();
+
+	$pdf->SetAuthor('UNAM-CERT');
+	$pdf->SetTitle('Comprobante de registro');
+	$pdf->SetSubject('Comprobante de registro');
+	
+	$pdf->AddPage();
+	
+        $pdf->Cell(185,5,'',0);
+        $pdf->Image(getcwd() . "/" . drupal_get_path('module','pdf') . "/" . "congreso_2015.jpg",10,8,186,30);
+        $pdf->Ln(30);
+        $pdf->Ln($es);
+        $pdf->SetFont('Times','B',11);
+        $pdf->Cell(120,5,'Datos personales',0,1,'',0,'');
+        $pdf->Ln($es);
+
+######	Datos del asistente
+
+	##Id asistente
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'ID registro: ',0,0);
+                $pdf->SetFont('Times','B',12);
+                $pdf->Cell(60,5,utf8_decode($asistente["idasistente"]),0,1);
+
+         ## Nombre y apellidos del asistente
+         		$aux=ucfirst($asistente["asis_nombre"]) . ' ' . ucfirst($asistente["asis_paterno"]) . ' ' . ucfirst($asistente["asis_materno"]);
+				$aux=utf8_decode($aux);
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'Nombre: ',0,0);
+                $pdf->SetFont('Times','',10);
+				$pdf->Cell(60,5,$aux,0,1);
+
+        ##Estatus del asistente
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'Estatus: ',0,0);
+                $pdf->SetFont('Times','',10);
+                $pdf->Cell(60,5,utf8_decode($asistente['est_nombre']) ,0,1);
+
+        ## Email del asistente
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'E-mail: ',0,0);
+                $pdf->SetFont('Times','',10);
+                $pdf->Cell(60,5,utf8_decode($asistente['asis_correo']),0,1);
+
+        ## Tipo de asistente
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'Tipo asistente: ',0,0);
+                $pdf->SetFont('Times','',10);
+                #$pdf->Cell(60,5, html_entity_decode ($asistente['tpo_nombre']) ,0,1);
+                $pdf->Cell(60,5, utf8_decode(register_replace($asistente['tpo_nombre'])),0,1);
+
+		# Empresa o institucion de procedencia
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'Empresa: ',0,0);
+                $pdf->SetFont('Times','',10);
+                $pdf->Cell(60,5,utf8_decode($asistente['asis_empresa']),0,1);
+
+        # Fecha de registro
+        		$tarifa="";
+        		switch ($fechas['iddescuento']) {
+				    case 4:
+				        $tarifa=" (Tarifa A)";
+						break;
+				    case 5:
+				        $tarifa=" (Tarifa A)";
+						break;
+				    case 6:
+				        $tarifa=" (Tarifa B)";
+						break;
+				}
+        
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'Fecha registro: ',0,0);
+                $pdf->SetFont('Times','',10);
+                $pdf->Cell(60,5,utf8_decode(getDiaCompleto($asistente['asis_fecha_registro'])).$tarifa,0,1);
+
+		# Costo registro
+			/*	
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'Costo registro: ',0,0);
+                $pdf->SetFont('Times','',10);
+                $pdf->Cell(60,5,'$'.$talleresTotal,0,1);
+				*/
+				
+		 /*
+        # Fecha actual
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'Fecha actual: ',0,0);
+                $pdf->SetFont('Times','',10);
+                $pdf->Cell(60,5,utf8_decode(getDiaCompleto(date('Y/m/d',strtotime("now")))),0,1);
+
+		# Costo actual
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'Costo actual: ',0,0);
+                $pdf->SetFont('Times','',10);
+                $pdf->Cell(60,5,'$xxxx.xx',0,1);
+		*/						
+         # Costo material(s)
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'Costo material(s): ',0,0);
+                $pdf->SetFont('Times','',10);
+				$pdf->Cell(60,5,'$'.$asistente['asis_monto_material'],0,1);
+                               
+               	
+               $pdf->SetFont('Times','B',10);
+		       $pdf->Cell($sng,5,'',0,0);
+		       $pdf->Cell(40,5,'Costo evento: ',0,0);
+		       $pdf->SetFont('Times','',10);
+		       $pdf->Cell(60,5,'$'.$asistente['asis_monto_evento'],0,1);
+		                       
+	       $pdf->SetFont('Times','B',10);
+		       $pdf->Cell($sng,5,'',0,0);
+		       $pdf->Cell(40,5,'Costo total: ',0,0);
+		       $pdf->SetFont('Times','',10);
+		       $pdf->Cell(60,5,'$'.$asistente['asis_total'],0,1);
+                       
+        # Costo total
+        		$aux = array_shift($fechasPromociones);
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'Total: ',0,0);
+                $pdf->SetFont('Times','B',12);
+                $pdf->Cell(20,5," Tarifa A ",1,0);
+				$pdf->Cell(20,5," $ ".$talleresTotalB,1,0);
+				$pdf->Cell(90,5," Hasta el ".utf8_decode(getDiaCompleto( $aux["fecha_fin"])),1,1);
+				
+				
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,' ',0,0);
+                $pdf->SetFont('Times','B',12);
+                $pdf->Cell(20,5," Tarifa B ",1,0);
+				$pdf->Cell(20,5," $ ".$talleresTotalC,1,0);
+				$aux = array_shift($fechasPromociones); 
+				$pdf->Cell(90,5," Hasta el ".utf8_decode(getDiaCompleto( $aux["fecha_fin"])),1,1);
+				
+				
+				/*
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,' ',0,0);
+                $pdf->SetFont('Times','B',12);
+                $pdf->Cell(20,5," Tarifa C ",1,0);
+				$pdf->Cell(20,5," $ ".$talleresTotalC,1,0);
+				$aux = array_shift($fechasPromociones); 
+				$pdf->Cell(90,5," hasta el ".utf8_decode(getDiaCompleto( $aux["fecha_fin"])),1,1);
+				*/
+	
+### SECCION de REgistro
+				$pdf->SetFont('Times','B',11);
+                $pdf->Ln($es);
+                $pdf->Cell(120,5,'Datos registro',0,1,'',0,'');
+                $pdf->Ln($es);
+
+	## linea Completa
+	if($mycount["lineaCompleta"]){
+		
+		$pdf->SetFont('Times','B',10);
+        $pdf->Cell($sng,5,'',0,0);
+        $pdf->Cell(40,5,utf8_decode("Línea completa:"),0,0);
+				
+		foreach ($mycount["lineaCompleta"] as $value) {
+				
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell(120,5,''.utf8_decode($value),0,1);
+				
+		        $pdf->Cell($sng,5,'',0,0);
+		        $pdf->Cell(40,5,"",0,0);		
+		}
+		
+		$pdf->Ln($es);
+		
+		## Contenido 
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,utf8_decode("Contenido:"),0,0);
+                $pdf->SetFont('Times','',10);
+                $pdf->Cell(120,5,''.$mycount["count"],0,1);            
+	}
+	
+     ## Material
+     /*
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'Material:',0,0);
+                $pdf->SetFont('Times','',10);
+                $pdf->Cell(120,5,'',0,1);
+	*/
+	## talleres
+		
+				$pdf->Cell(134,5,'',0,0);
+           	
+				$pdf->SetFont('Times','B',10);
+				$pdf->Cell(15,5,'Tarifa A',0,0);
+
+				$pdf->Cell(15,5,'Tarifa B',0,1);
+
+				#$pdf->Cell(15,5,'Tarifa C',0,1);
+
+			
+								
+                #$pdf->Ln($es);
+                        $pdf = pdf_getTalleresPDF($registro,$pdf,$asistente['idtipoasis'],$fechas['iddescuento']);      
+				
+				if(	($nombre==" " && $rfc==" " && $domicilio==" " )?$opcion=0: $opcion=1){
+			if($_SESSION['op_fac'] == 1){
+### Seccion de datos de facturacion
+	         	$pdf->SetFont('Times','B',11);
+		        $pdf->Ln($es);
+		        $pdf->Cell(120,5,'Datos Factura',0,1,'',0,'');
+		        $pdf->Ln($es);
+
+	## Razon social
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,utf8_decode("Nombre / Razón social:"),0,0);
+                $pdf->SetFont('Times','',10);
+                $pdf->Cell(120,5,utf8_decode($factura['facrazon']),0,1);
+                        
+	## RFC
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'RFC:',0,0);
+                $pdf->SetFont('Times','',10);
+                $pdf->Cell(120,5,utf8_decode($factura['facrfc']),0,1);
+
+	## Domicilio fiscal
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'Domicilio:',0,0);
+                $pdf->SetFont('Times','',10);
+                $pdf->Cell(120,5,utf8_decode($factura['facdomicilio']),0,1);
+                }
+                else{
+                	
+					### Solo ticket (modificar mensaje)
+	         	$pdf->SetFont('Times','B',11);
+		        $pdf->Ln($es);
+		        $pdf->Cell(120,5,'Comprobante de pago.',0,1,'',0,'');
+		        $pdf->Ln($es);
+
+
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,utf8_decode("Sólo ticket."),0,0);
+                $pdf->SetFont('Times','',10);
+                $pdf->Cell(120,5,'',0,1);
+                        
+
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'',0,0);
+                $pdf->SetFont('Times','',10);
+                $pdf->Cell(120,5,'',0,1);
+
+
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,'',0,0);
+                $pdf->SetFont('Times','',10);
+                $pdf->Cell(120,5,'',0,1);
+				}
+				}
+
+	#### SECCION DE  Observaciones
+	/*
+		$pdf->Ln($es);
+                $pdf->SetFont('Times','B',11);
+                $pdf->Cell(120,5,'Observaciones',0,1,'',0,'');
+                $pdf->Ln($es);
+                ##Se imprime un renglon
+                $pdf->SetFont('Times','',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->MultiCell(170,25,utf8_decode($asistente['asis_observaciones']),1,1);
+	*/
+	
+###### SECCION DE OTROS #####
+/*
+                $pdf->Ln($es);
+                $pdf->SetFont('Times','B',11);
+                $pdf->Cell(120,5,'Otros',0,1,'',0,'');
+                $pdf->Ln($es);
+
+          ## Evento pagado
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell($cas,5,'',1,0);
+                $pdf->Cell(5,5,'',0,0);
+                $pdf->Cell(120,5,'Evento pagado',0,1);
+                
+	  ## Material pagado
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell($cas,5,'',1,0);
+                $pdf->Cell(5,5,'',0,0);
+                $pdf->Cell(120,5,'Material pagado',0,1);
+
+	  ## total Material entregado
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell($cas,5,'',1,0);
+                $pdf->Cell(5,5,'',0,0);
+                $pdf->Cell(120,5,'Total material entregado',0,1);
+
+	  ##  Constancia entregada
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell($cas,5,'',1,0);
+                $pdf->Cell(5,5,'',0,0);
+                $pdf->Cell(120,5,'Constancia entregada',0,1);
+
+	  ## Factura entregada
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell($cas,5,'',1,0);
+                $pdf->Cell(5,5,'',0,0);
+                $pdf->Cell(120,5,'Factura entregada',0,1);
+
+	*/
+		  ## Domicilio fiscal
+	  			$pdf->Ln($es);
+	  			$pdf->Ln($es);
+		  
+                $pdf->SetFont('Times','B',10);
+                $pdf->Cell($sng,5,'',0,0);
+                $pdf->Cell(40,5,utf8_decode("Por favor realice su pago anticipado para que se le pueda aplicar el descuento."),0,0);
+				
+				$pdf->Ln($es); 
+				$pdf->Ln($es);
+				$pdf->Cell($sng,5,'',0,0);				
+                $pdf->Cell(40,5,utf8_decode("Más información sobre los costos en nuestro sitio web https://congreso.seguridad.unam.mx/2015/"),0,0);
+				
+				
+                
+	
+	ob_end_clean();
+	
+		
+	//$pdf->Output();
+	//$pdf->Output($idasistente.'_CSC-2014.pdf','S');#sthash.CdIVMNPW.dpuf);
+	return $pdf->Output($idasistente.'_CSC-2015.pdf',$out);
+}
+
+function pdf_getTalleresPDF($registro, $pdf,$idtipoasis,$iddescuento){	
+	$es=intval(3);
+	$sng=intval(10);
+	$cas=intval(10);
+	$flag=0;
+	$aux="";
+	$count = count($registro);
+	
+	foreach ($registro as $array) {
+		
+			if (($array['idtaller'] == 9998 && $flag) ) {
+					continue;
+			}		
+	
+				if(($array['linidentificador'] .' '. $array['linnombre'] != $aux) ){
+				
+					$pdf->Ln($es);
+					
+					$pdf->SetFont('Times','B',10);
+				#		$pdf->Cell($sng,5,'',0,0);
+						$pdf->Cell($cas,5,'',0,0);
+						$pdf->Cell(125,5,utf8_decode($array['linidentificador'] .' '. $array['linnombre']),0,0);
+						
+						if($array["reg_linea"]){
+							#$pdf->Cell(16,5,"$".getCostototal($registro,$idtipoasis,4),1,0);
+							$pdf->Cell(16,5,"$".getCostototal($registro,$idtipoasis,5),1,0);
+							$pdf->Cell(16,5,"$".getCostototal($registro,$idtipoasis,6),1,1);
+						}
+					$aux=$array['linidentificador'] .' '. $array['linnombre'];
+					$pdf->Cell(16,5,"",0,1);
+					$pdf->Ln($es);	
+				}
+			
+			$pdf->SetFont('Times','B',10);
+				#$pdf->Cell($sng,5,'',0,0);
+				$pdf->Cell($cas,5,'',0,0);
+				$pdf->Cell(5,5,'',0,0);
+				$pdf->Cell(120,5,utf8_decode($array['linidentificador'] . $array['tall_identificador'] . ' ' . $array['tall_nombre']),0,0);
+				
+				
+				if ((!$array['reg_linea']) || ($idtipoasis==4 && $count==1 && $array["idtaller"]== 9999)){
+					if($array["idtaller"]== 9999 && $count>1){
+						$pdf->Cell(16,5,"",0,1);
+					}else{
+						#$costo=getCostoByTaller($idtipoasis,4,$array['idtipotaller'],$array["idtaller"]);
+						#$pdf->Cell(16,5,'$'.$costo,0,0);
+						$costo=getCostoByTaller($idtipoasis,5,$array['idtipotaller'],$array["idtaller"]);
+						$pdf->Cell(16,5,'$'.$costo,0,0);
+						$costo=getCostoByTaller($idtipoasis,6,$array['idtipotaller'],$array["idtaller"]);
+						$pdf->Cell(16,5,'$'.$costo,0,1);
+					}
+				}else{
+					$pdf->Cell(16,5,"",0,1);
+					$flag=1;
+							
+				}
+	}
+	return $pdf;
+}
+
+function getCostototal($registro,$idtipoasis,$iddescuento){
+	
+	$costo=0;
+	$numtalleres=count($registro);
+	
+	foreach ($registro as $array) {
+		
+			if($idtipoasis==4 && $numtalleres==1 && $array["idtaller"]== 9999){
+				$costo=$costo+400;
+				continue;
+			}
+			if($idtipoasis==4 && $numtalleres!=1 && $array["idtaller"]== 9999){
+				continue;
+			}
+			
+			if($idtipoasis==4 && $numtalleres!=1 && $array["idtaller"]== 9998){
+				####cuentas cortesias
+				if($_SESSION['ban_cortesia'] == 'true'){
+				$costo=$costo+0;
+				}else{
+				$costo=$costo+1000;
+				}
+				
+				continue;
+			}
+			
+			if ($array["reg_conferencia"] && $array["reg_linea"]){
+				if($idtipoasis==4){
+					return 12000;
+				}			
+				return $costo += getCostoByTaller($idtipoasis,$iddescuento,5,$array["idtaller"]);
+			}
+			$costo += getCostoByTaller($idtipoasis,$iddescuento,$array['idtipotaller'],$array["idtaller"]);
+	}
+	return $costo;	
+}
+
+function getCostoByTaller($idtipoasis,$iddescuento,$idtipotaller,$idtaller) {
+		if($idtipoasis==4){
+			if ($idtaller==9999){return 400;	}//Evento renasec
+			if ($idtaller==9998){return 1000;	}//conferencias magistrales
+			if ($idtipotaller==3){return 1200;	} // 4 horas
+			if ($idtipotaller==4){return 2400;	} // 8 horas
+			if ($idtipotaller==5){return 12000;	} // Linea completa
+		}
+
+	if($idtaller== 9998){ //Conferencias magistrales
+
+		if($_SESSION['ban_cortesia'] == 'true'){
+				return 0;
+				}else{
+				###############	
+		if($idtipoasis==6 or $idtipoasis==3 ){
+				return 500;
+		}else{
+				return 1000;
+				}
+	}
+	}
+	db_set_active('congreso');
+
+	$costo = db_query("SELECT c.costo FROM costos c WHERE c.idtipoasis = ".$idtipoasis ." and 
+			c.iddescuento = ".$iddescuento." and c.idtipotaller = ".$idtipotaller 
+		) -> fetchField();
+
+	db_set_active('default');
+
+	return $costo;
+}
+
+function mycount($registro){
+
+	$flag=0;
+	$FlagRenasec=0;
+	$aux="";
+	$lineaCompleta=array();
+	
+	foreach ($registro as $array) {
+		if($array["reg_conferencia"]){
+			$flag=1;
+			if($array["reg_renasec"]){
+				$FlagRenasec=1;
+			}
+			if(($array['linidentificador'] .' '. $array['linnombre'] != $aux) ){
+				if( ($array['linidentificador'] == "T")){continue;}
+				array_push($lineaCompleta,$array['linidentificador'] .' '. $array['linnombre']);
+				$aux=$array['linidentificador'] .' '. $array['linnombre'];
+			}
+		}
+	}
+	
+	if($flag && $FlagRenasec){
+		array_push($lineaCompleta,"(Ciclo de conferencias Y Reunión IES incluido)");
+		return array(
+			"lineaCompleta"=>$lineaCompleta,
+			"count"=>(count($registro) - 1)." talleres",
+			);
+	}
+	if($flag){
+		array_push($lineaCompleta,"(Ciclo de conferencias incluido)");
+		return array(
+			"lineaCompleta"=>$lineaCompleta,
+			"count"=>(count($registro) - 1)." talleres",
+			);
+	}else{
+		return array(
+			"lineaCompleta"=>FALSE,
+			"count"=>(count($registro))." talleres",
+			);
+	}
+}
+
+function pdf_getAsistente($idasistente,$priv=0){
+      
+  $priv ? db_set_active('congresopriv') : db_set_active('congreso');
+  $datos = db_select('asistentes_todos', 'a');
+  
+  $datos -> join('tipo_asistente', 't', 't.idtipoasis = a.idtipoasis');
+  $datos -> join('estatus', 'e', 'e.idestatus = a.idestatus');
+  $datos = $datos -> fields('a', array('asis_total','asis_nombre', 'asis_paterno', 'idasistente', 'asis_materno', 'asis_correo', 'asis_empresa', 'idtipoasis', 'idestatus', 'becado','asis_fecha_registro','asis_observaciones','asis_monto_material','asis_monto_evento','asis_total'))
+    -> fields('e', array('est_nombre', 'idestatus'))
+    -> fields('t', array("tpo_nombre", 'idtipoasis')) -> condition('idasistente', $idasistente, '=') -> execute() -> fetchAssoc();
+  db_set_active('default');
+  
+  
+  return $datos;
+}
+
+
+function pdf_getFactura($idasistente,$priv=0) {
+
+
+  $priv ? db_set_active('congresopriv') : db_set_active('congreso');
+
+  $priv ? $datos = db_select('privado.factura_tempo', 'f') :   $datos = db_select('factura_tempo', 'f');
+
+  $datos = $datos
+    -> fields('f', array('facrazon','facrfc','facdomicilio'))
+    -> condition('idasistente', $idasistente, '=')
+    -> execute()
+    -> fetchAssoc();
+  db_set_active('default');
+
+  return $datos;
+}
+
+
+function pdf_getTalleres($idasistente,$priv=0) {
+
+  #$priv ? db_set_active('congresopriv') : db_set_active('congreso');
+  db_set_active('congresopriv') ;
+  $registro = db_select('privado.registro_tempo', 'r') ;
+
+  //Haciendo joins
+
+  $registro -> join('taller', 't', 't.idtaller = r.idtaller');
+  $registro -> join('linea', 'l', 'l.idlinea = t.idlinea');
+  //SEleccionando campos
+  $registro = $registro -> fields('r', array('idasistente', 'idtaller', 'reg_linea', 'reg_conferencia', 'reg_renasec'))
+    -> fields('t', array('idtipotaller','tall_nombre', 'tall_identificador', 'tall_fecha_ini', 'tall_hora_ini', 'tall_hora_fin','tall_cupo','tall_inscritos'))
+    -> fields('l', array('linidentificador', 'linnombre'))
+    -> condition('idasistente', $idasistente, '=')
+    -> orderBy('l.linidentificador', 'ASC')
+    -> orderBy('t.tall_identificador', 'ASC')
+    -> execute() -> fetchall();
+  db_set_active('default');
+  
+  $array = array();
+  foreach ($registro as $valor) {
+    array_push($array,get_object_vars($valor));
+
+  }
+  return $array;
+}
+
+
+function pdf_getFechaPromo() {
+
+  db_set_active('congreso');
+
+  $idfecha = db_query("SELECT d.iddescuento FROM descuentos_extra d WHERE '" . date('Y-m-d') . "' between  d.fecha_inicio and d.fecha_fin") -> fetchField();
+
+  $fechas = db_select('descuentos_extra', 'd') -> fields('d', array('iddescuento','fecha_inicio', 'fecha_fin')) -> condition('iddescuento', $idfecha, '=') -> execute() -> fetchAssoc();
+
+  db_set_active('default');
+
+  return $fechas;
+}
+
+function pdf_getFechasPromo() {
+
+       db_set_active('congreso');
+
+       $fechas = db_select('descuentos_extra', 'd');
+
+       //SEleccionando campos
+       $fechas = $fechas -> fields('d', array('fecha_inicio', 'fecha_fin','iddescuento')) 
+               #-> condition('iddescuento', 4, '=')
+               ->condition('iddescuento', array(5,6),'IN')
+               #-> condition('iddescuento', 6, '=')
+               -> orderBy('iddescuento', 'ASC')  
+               -> execute() -> fetchAll();
+       db_set_active('default');
+
+       $array = array();
+  foreach ($fechas as $valor) {
+    array_push($array,get_object_vars($valor));
+
+  }
+  return $array;
+}
