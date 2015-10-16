@@ -153,6 +153,8 @@ CREATE TABLE IF NOT EXISTS revision(
 CREATE TABLE IF NOT EXISTS hall_rev(
 	id_revision serial,
 	nid_hallazgo serial,
+	payload varchar(255),
+	evidencia varchar(255),
 	FOREIGN KEY (id_revision) REFERENCES revision(id_revision),
 	FOREIGN KEY (nid_hallazgo) REFERENCES node(nid)
 );
