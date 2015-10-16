@@ -126,7 +126,10 @@ CREATE TABLE IF NOT EXISTS solicitud(
 	fecha_fin date,
 	id_sitweb integer,
 	FOREIGN KEY (id_organizacion) REFERENCES organizacion(id_organizacion),
-	FOREIGN KEY (id_sitweb) REFERENCES sitio_web(id_sitweb)
+	FOREIGN KEY (id_sitweb) REFERENCES sitio_web(id_sitweb),
+	CHECK (fecha_sol <= fecha_disp AND fecha_sol <= fecha_ini AND fecha_sol < fecha_fin),
+	CHECK (fecha_disp <= fecha_ini AND fecha_disp < fecha_fin),
+	CHECK (fecha_ini < fecha_fin)
 );
 
 --solicitud_contacto
