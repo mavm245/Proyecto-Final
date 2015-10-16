@@ -14,7 +14,7 @@ DATE=`date +%F_%R`
 PG_STATUS=''
 
 #Connections Parameters
-IP_DB='192.168.222.157'
+IP_DB='192.168.7.2'
 IP_PORT='5432'
 IP_BACK='localhost'
 DATABASE='revisiones_drupal'
