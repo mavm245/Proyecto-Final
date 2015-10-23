@@ -1,9 +1,0 @@
-;$Id$
-name = pdf
-description = pdf
-package = CSI-UNAM-CERT
-core = 7.x
-;files[] = pdf.module
-;dependencies[] = autoload
-;php = 5.2
-
