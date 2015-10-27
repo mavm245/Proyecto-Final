@@ -513,7 +513,7 @@ if(!preg_match('/^(([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}([1-9]|[1-9]\d|1\
 if(!preg_match('/^[a-zA-Z][a-zA-Z0-9\- ]+/',$prot_acc_rem)){
 	form_set_err*/
 
-if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])/',$puer_acc_rem)){
+if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])$/',$puer_acc_rem)){
 	form_set_error('puer_acc_rem',t('Ingresar un puerto de acceso válido'));
 }
 
@@ -525,7 +525,7 @@ if(!preg_match('/^(([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}([1-9]|[1-9]\d|1\
 	form_set_error('ip_web',t('Ingresar un dirección IP del servicio web válida'));
 }*/
 
-if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])/',$puer_acc_web)){
+if(!preg_match('/^(\b([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])\b)$/',$puer_acc_web)){
 	form_set_error('puer_acc_web',t('Ingresar un puerto del servicio web válido'));
 }
 
@@ -549,7 +549,7 @@ if( !(empty($ip_bd) && empty($puer_acc_bd) && empty($nom_bd) && empty($soft_bd) 
 		form_set_error('ip_bd',t('Ingresar una ip de base de datos válida'));
 	}
 
-	if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])/',$puer_acc_bd)){
+	if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])$/',$puer_acc_bd)){
 		form_set_error('puer_acc_bd',t('Ingresar un puerto de base de datos válido'));
 	}
 

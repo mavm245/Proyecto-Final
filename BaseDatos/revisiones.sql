@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS tipo_contacto(
 CREATE TABLE IF NOT EXISTS contacto(
 	id_contacto serial primary key,
 	cont_nombre varchar(60) NOT NULL,
-	cont_correo varchar(30) NOT NULL,
+	cont_correo varchar(60) NOT NULL,
 	cont_tel varchar(20) NOT NULL,
 	id_tipo_contacto integer,
 	FOREIGN KEY (id_tipo_contacto) REFERENCES tipo_contacto(id_tipo_contacto)
