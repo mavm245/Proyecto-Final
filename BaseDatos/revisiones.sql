@@ -52,9 +52,10 @@ CREATE TABLE IF NOT EXISTS manejador_db(
 	id_sistema integer,
 	rdbms_ver varchar(30) NOT NULL,
 	rdbms_ip varchar(30) NOT NULL,
-	rdbms_puerto varchar(10) NOT NULL,
+	rdbms_puerto integer NOT NULL,
 	rdbms_nom varchar(50) NOT NULL,
-	FOREIGN KEY (id_sistema) REFERENCES sistema_manejador(id_sistema)
+	FOREIGN KEY (id_sistema) REFERENCES sistema_manejador(id_sistema),
+	CHECK (rdbms_puerto > 0 AND rdbms_puerto < 65535)
 );
 
 --protos_acceso
@@ -81,10 +82,11 @@ CREATE TABLE IF NOT EXISTS servidor_web(
 	id_so integer,
 	serweb_ver varchar(100) NOT NULL,
 	id_proto integer,
-	acceso_puerto varchar(5) NOT NULL,
+	acceso_puerto integer NOT NULL,
 	ip_serweb varchar(20) NOT NULL,
 	FOREIGN KEY (id_so) REFERENCES servidor_so(id_so),
-	FOREIGN KEY (id_proto) REFERENCES protos_acceso(id_proto)
+	FOREIGN KEY (id_proto) REFERENCES protos_acceso(id_proto),
+	CHECK (acceso_puerto > 0 AND acceso_puerto < 65535)
 );
 
 --sitio_web
@@ -111,9 +113,10 @@ CREATE TABLE IF NOT EXISTS url_web(
 --puertos_web
 CREATE TABLE IF NOT EXISTS puertos_web(
 	id_puerto_web serial primary key,
-	puerto_web varchar(10),
+	puerto_web integer,
 	id_sitweb integer,
-	FOREIGN KEY (id_sitweb) REFERENCES sitio_web(id_sitweb)
+	FOREIGN KEY (id_sitweb) REFERENCES sitio_web(id_sitweb),
+	CHECK (puerto_web > 0 AND puerto_web < 65535)
 );
 
 --solicitud
@@ -154,7 +157,6 @@ CREATE TABLE IF NOT EXISTS hall_rev(
 	id_revision serial,
 	nid_hallazgo serial,
 	payload varchar(255),
-	evidencia varchar(255),
 	FOREIGN KEY (id_revision) REFERENCES revision(id_revision),
 	FOREIGN KEY (nid_hallazgo) REFERENCES node(nid)
 );
