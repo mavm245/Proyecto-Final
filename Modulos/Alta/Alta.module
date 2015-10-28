@@ -7,7 +7,7 @@
 
 function alta_menu() {
   $items['Alta'] = array(
-    'title' => 'Alta de nueva revisión.',
+    'title' => 'Alta de nueva revisión',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('alta_form'),
     'access callback' => TRUE,
@@ -78,6 +78,7 @@ function alta_rev_form($form,&$form_submit) {
 	drupal_get_path('module','Alta') . '/Alta.css'
 	);
 	
+	$nombre_sitio='';
 	$nom_org='';
 	#$tipo_org='';
 	$fecha_sol='';
@@ -111,6 +112,14 @@ function alta_rev_form($form,&$form_submit) {
   $form['inicio'] = array(
     '#type' => 'item',
     '#title' => $mensaje,
+  );
+  
+   $form['nombre_sitio'] = array(
+    '#title' => t('Nombre del sitio a revisar'),
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#default_value' => $nombre_sitio,
+    '#filters' => array('trim','strip_tags'),
   );
  
   $info1 = "<div class='apartado'><u>Organización.</u></div>";  
@@ -313,14 +322,14 @@ function alta_rev_form($form,&$form_submit) {
     '#title' => $info8,
   );
   
-  $form['ip_web'] = array(
+ /* $form['ip_web'] = array(
     '#title' => t('Direccion IP del servicio web:'),
     '#type' => 'textfield',
     '#required' => FALSE,
     '#default_value' => $ip_web,
     '#filters' => array('trim','strip_tags'),
     '#disabled' => TRUE,
-  );
+  );*/
   
   $form['puer_acc_web'] = array(
     '#title' => t('Puerto(s):'),
@@ -414,6 +423,7 @@ function alta_rev_form($form,&$form_submit) {
 function alta_rev_validar($form, &$form_submit){
 	//FILTER_SANATIZE_STRING -> Quita etiquetas y elimina o codifica los caracteres especiales de una cadena.
 	//strip_tags -> Retira las etiquetas HTML y PHP de un string.
+  	$nombre_sitio=filter_var(strip_tags($form_submit['values']['nombre_sitio']),FILTER_SANITIZE_STRING);
   	$nom_org=filter_var(strip_tags($form_submit['values']['nom_org']),FILTER_SANITIZE_STRING);
     $tipo_org= strip_tags($form_submit['values']['tipo_org']);
 	$fecha_sol=filter_var(strip_tags($form_submit['values']['fecha_sol']),FILTER_SANITIZE_STRING);
@@ -432,7 +442,7 @@ function alta_rev_validar($form, &$form_submit){
 	$prot_acc_rem=strip_tags($form_submit['values']['prot_acc_rem']);
 	$puer_acc_rem=filter_var(strip_tags($form_submit['values']['puer_acc_rem']),FILTER_SANITIZE_STRING);
 	$dir_usua=filter_var(strip_tags($form_submit['values']['dir_usua']),FILTER_SANITIZE_STRING);
-	$ip_web=filter_var(strip_tags($form_submit['values']['ip_web']),FILTER_SANITIZE_STRING);
+	//$ip_web=filter_var(strip_tags($form_submit['values']['ip_web']),FILTER_SANITIZE_STRING);
 	$puer_acc_web=filter_var(strip_tags($form_submit['values']['puer_acc_web']),FILTER_SANITIZE_STRING);
 	$url_sitio=filter_var(strip_tags($form_submit['values']['url_sitio']),FILTER_SANITIZE_STRING);
 	$soft_web=strip_tags($form_submit['values']['soft_web']);
@@ -444,6 +454,9 @@ function alta_rev_validar($form, &$form_submit){
 	$ver_bd=filter_var(strip_tags($form_submit['values']['ver_bd']),FILTER_SANITIZE_STRING);
  
 
+if(!preg_match('/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+/',$nombre_sitio)){
+	form_set_error('nom_org',t('Ingresar un nombre de sitio válido'));
+}
 
 if(!preg_match('/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+/',$nom_org)){
 	form_set_error('nom_org',t('Ingresar un nombre de organización válido'));
@@ -452,6 +465,7 @@ if(!preg_match('/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+/',$nom_org)){
 /*if(!preg_match('/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+/',$tipo_org)){
 	form_set_error('tipo_org',t('Ingresar un tipo de organización válido'));
 }*/
+
 
 if(!preg_match('/^(19|20)\d\d\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/',$fecha_sol)){
 	form_set_error('fecha_sol',t('Ingresar una fecha de solictud válida'));
@@ -469,6 +483,31 @@ if(!preg_match('/^(19|20)\d\d\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/',$fec
 	form_set_error('fecha_fin',t('Ingresar una fecha de fin válida'));
 }
 
+if(strtotime($fecha_fin) > strtotime($fecha_ini))
+{
+}
+else{
+	form_set_error('nom_adm',t('Ingresar una fecha de inicio menor a la fecha de fin'));
+	
+}
+
+if(strtotime($fecha_disp) <= strtotime($fecha_ini) && strtotime($fecha_disp) < strtotime($fecha_fin))
+{
+}
+else {
+	form_set_error('nom_adm',t('Ingresar una fecha de disponibilidad menor a las de inicio y fin'));
+}
+
+if(strtotime($fecha_sol) <= strtotime($fecha_disp) && strtotime($fecha_sol) <= strtotime($fecha_ini)  && strtotime($fecha_sol) < strtotime($fecha_fin))
+{
+
+
+}
+else{
+	form_set_error('nom_adm',t('Ingresar una fecha de solicitud menor a las de disponibilidad, inicio y fin'));
+}
+
+
 if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ](\.|[a-záéíóúüñ]+\.?)\s[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ\.]+(\s[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ]+)+$/',$nom_adm)){
 	form_set_error('nom_adm',t('Ingresar un nombre de contacto administrativo válido'));
 }
@@ -477,7 +516,7 @@ if(!preg_match('/^[a-zA-Z][a-zA-Z0-9_\-]?(\.?[a-zA-Z0-9_\-])+@[a-z0-9-]+(.[a-z0-
 	form_set_error('correo_adm',t('Ingresar un correo de contacto ADMINISTRATIVO válido'));
 }
 
-if(!preg_match('/^(((044|\+[0-9]{1,2})\s?)?[0-9]{5,10}(\s[A-Za-z]+\.?\s[0-9]{1,5})?)$/',$tel_adm)){
+if(!preg_match('/^(((044|\+[0-9]{1,2})\s?)?[0-9]{5,10}(\s[A-Za-z]+\.?\s[0-9]{1,5})?|([A-Za-z]+\.?\s[0-9]{1,5})?)$/',$tel_adm)){
 	form_set_error('tel_adm',t('Ingresar un teléfono de contacto administrativo válido'));
 }
 
@@ -489,7 +528,7 @@ if(!preg_match('/^[a-zA-Z][a-zA-Z0-9_\-]?(\.?[a-zA-Z0-9_\-])+@[a-z0-9-]+(.[a-z0-
 	form_set_error('correo_tec',t('Ingresar un correo de contacto técnico válido'));
 }
 
-if(!preg_match('/^(((044|\+[0-9]{1,2})\s?)?[0-9]{5,10}(\s[A-Za-z]+\.?\s[0-9]{1,5})?)$/',$tel_tec)){
+if(!preg_match('/^(((044|\+[0-9]{1,2})\s?)?[0-9]{5,10}(\s[A-Za-z]+\.?\s[0-9]{1,5})?|([A-Za-z]+\.?\s[0-9]{1,5})?)$/',$tel_tec)){
 	form_set_error('tel_tec',t('Ingresar un teléfono de contacto técnico válido'));
 }
 /*
@@ -513,7 +552,7 @@ if(!preg_match('/^(([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}([1-9]|[1-9]\d|1\
 if(!preg_match('/^[a-zA-Z][a-zA-Z0-9\- ]+/',$prot_acc_rem)){
 	form_set_err*/
 
-if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])$/',$puer_acc_rem)){
+if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])/',$puer_acc_rem)){
 	form_set_error('puer_acc_rem',t('Ingresar un puerto de acceso válido'));
 }
 
@@ -525,7 +564,7 @@ if(!preg_match('/^(([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}([1-9]|[1-9]\d|1\
 	form_set_error('ip_web',t('Ingresar un dirección IP del servicio web válida'));
 }*/
 
-if(!preg_match('/^(\b([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])\b)$/',$puer_acc_web)){
+if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])/',$puer_acc_web)){
 	form_set_error('puer_acc_web',t('Ingresar un puerto del servicio web válido'));
 }
 
@@ -549,7 +588,7 @@ if( !(empty($ip_bd) && empty($puer_acc_bd) && empty($nom_bd) && empty($soft_bd) 
 		form_set_error('ip_bd',t('Ingresar una ip de base de datos válida'));
 	}
 
-	if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])$/',$puer_acc_bd)){
+	if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])/',$puer_acc_bd)){
 		form_set_error('puer_acc_bd',t('Ingresar un puerto de base de datos válido'));
 	}
 
@@ -566,6 +605,7 @@ if( !(empty($ip_bd) && empty($puer_acc_bd) && empty($nom_bd) && empty($soft_bd) 
 	}
 }
 
+$form_submit['values']['nombre_sitio']=$nombre_sitio;
 $form_submit['values']['nom_org']=$nom_org;
 $form_submit['values']['tipo_org']=$tipo_org;
 $form_submit['values']['fecha_sol']=$fecha_sol;
@@ -584,7 +624,7 @@ $form_submit['values']['ip_sitio']=$ip_sitio;
 $form_submit['values']['prot_acc_rem']=$prot_acc_rem;
 $form_submit['values']['puer_acc_rem']=$puer_acc_rem;
 $form_submit['values']['dir_usua']=$dir_usua;
-$form_submit['values']['ip_web']=$ip_web;
+//$form_submit['values']['ip_web']=$ip_web;
 $form_submit['values']['puer_acc_web']=$puer_acc_web;
 $form_submit['values']['url_sitio']=$url_sitio;
 $form_submit['values']['soft_web']=$soft_web;
@@ -600,7 +640,7 @@ $form_submit['values']['ver_bd']=$ver_bd;
 
 //Almacenamiento de datos
 function alta_rev_enviar($form, &$form_submit) {
-	
+	$nombre_sitio = $form_submit['values']['nombre_sitio'];
     $nom_org=$form_submit['values']['nom_org'];
     $tipo_org=$form_submit['values']['tipo_org'];
 	$fecha_sol=$form_submit['values']['fecha_sol'];
@@ -619,7 +659,7 @@ function alta_rev_enviar($form, &$form_submit) {
 	$prot_acc_rem=$form_submit['values']['prot_acc_rem'];
 	$puer_acc_rem=$form_submit['values']['puer_acc_rem'];
 	$dir_usua=$form_submit['values']['dir_usua'];
-	$ip_web=$form_submit['values']['ip_web'];
+	//$ip_web=$form_submit['values']['ip_web'];
 	$puer_acc_web=$form_submit['values']['puer_acc_web'];
 	$url_sitio=$form_submit['values']['url_sitio'];
 	$soft_web=$form_submit['values']['soft_web'];
@@ -741,6 +781,7 @@ function alta_rev_enviar($form, &$form_submit) {
       ))->execute(); 
 	  
 	$solicitud= db_insert('solicitud')->fields(array(
+		'sitio_nombre' => $nombre_sitio,
         'id_organizacion' => $org,
         'fecha_sol' => $fecha_sol,
         'fecha_disp' => $fecha_disp,
