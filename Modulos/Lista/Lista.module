@@ -34,6 +34,10 @@ function Lista_permission() {
       'title' => t('Permisos para visualizar las listas de revisiones'),
       'description' => t('Seleccion de usuarios que pueden tener acceso.'),
     ),
+    'Lista/todas' => array(
+      'title' => t('Permisos para visualizar todas'),
+      'description' => t('Seleccion de usuarios que pueden tener acceso.'),
+    ),
   );
 }
 
@@ -68,10 +72,16 @@ function Lista_solicitudes_form($form, $form_state){
     '#multiple' => FALSE,
   	);
 	
-	$form['submit'] = array(
+	$form['submit_gen'] = array(
       '#value' => 'Generar documento',
       '#type' => 'submit',
       '#submit' => array('Lista_generar'),
+    );
+	
+	$form['submit_del'] = array(
+      '#value' => 'Borrar Solicitud',
+      '#type' => 'submit',
+      '#submit' => array('Solicitud_borrar'),
     );
   return $form;	
 }
@@ -105,6 +115,178 @@ function Lista_query_solicitud(){
 function Lista_generar($form, &$form_submit) {
 }
 
+function Solicitud_borrar($form, &$form_submit) {
+	
+	$values = $form_submit['values'];
+	$solicitud = strip_tags($form_submit['values']['table']);
+	
+	$consulta_rev= "SELECT r.id_solicitud FROM solicitud s, revision r WHERE s.id_solicitud = r.id_solicitud and s.id_solicitud = ".$solicitud.";";
+	$num_rev = db_query($consulta_rev)->fetchAll();
+	$num_rev = count($num_rev);
+	/*
+	$consulta_rev = db_select('solicitud','s')
+					->join('revision','r','s.id_solicitud = r.id_solicitud')
+					->fields('r',array('id_solicitud'))
+					->condition('s.id_solicitud',1,'=')
+					->execute()
+					->fetchAssoc();
+	
+	
+	$result = db_select('revision','r')
+			->join('solicitud','s','r.id_solicitud = s.id_solicitud')
+			->fields('r',array('id_solicitud'))
+			->execute()
+			->fetchField();
+	*/
+	drupal_set_message(t('Something @var just happened.', array('@var' => $num_rev)), 'butterflies');
+	 
+	 /*
+	$transaccion = db_transaction();
+  	try {
+      $organizacion = db_insert('organizacion')->fields(array(
+        'org_nombre' => $nom_org,
+		'id_tiporg' => $tipo_org,
+      ))->execute();
+	
+	$orga=db_select('organizacion','t')
+  			->fields('t')
+			->orderBy('id_organizacion','DESC')
+			->execute()
+			->fetchAssoc();
+	 	$org = $orga['id_organizacion'];
+		
+      $contacto1 = db_insert('contacto')->fields(array(
+    	'cont_nombre' => $nom_adm,
+		'cont_correo' => $correo_adm,
+		'cont_tel' => $tel_adm,
+		'id_tipo_contacto' => '1',
+      ))->execute();
+	  
+	  $cont1=db_select('contacto','t')
+  			->fields('t')
+			->orderBy('id_contacto','DESC')
+			->execute()
+			->fetchAssoc();
+	 	$c1 = $cont1['id_contacto'];
+      
+	 $contacto2 = db_insert('contacto')->fields(array(
+        'cont_nombre' => $nom_tec,
+		'cont_correo' => $correo_tec,
+		'cont_tel' => $tel_tec,
+		'id_tipo_contacto' => '2',
+      ))->execute();
+	  
+	   $cont2=db_select('contacto','t')
+  			->fields('t')
+			->orderBy('id_contacto','DESC')
+			->execute()
+			->fetchAssoc();
+	 	$c2 = $cont2['id_contacto'];
+	  
+	 if( !(empty($ip_bd) && empty($puer_acc_bd) && empty($nom_bd) && empty($soft_bd) && empty($ver_bd))){
+	 $manejador = db_insert('manejador_db')->fields(array(
+        'id_sistema' => $soft_bd,
+        'rdbms_ver' => $ver_bd,
+        'rdbms_ip' => $ip_bd,
+        'rdbms_puerto' => $puer_acc_bd,
+        'rdbms_nom' => $nom_bd,
+      ))->execute();
+	 }
+
+	 $servidor_web = db_insert('servidor_web')->fields(array(
+        'id_so' => $sist_op,
+        'serweb_ver' => $sist_op_ver,
+        'id_proto' => $prot_acc_rem,
+        'acceso_puerto' => $puer_acc_rem,
+        'ip_serweb' => $ip_sitio
+      ))->execute();
+	 
+	 $server=db_select('servidor_web','t')
+  			->fields('t')
+			->orderBy('id_serweb','DESC')
+			->execute()
+			->fetchAssoc();
+	 	$test = $server['id_serweb'];
+	 
+	  $base=db_select('manejador_db','t')
+  			->fields('t')
+			->orderBy('id_rdbms','DESC')
+			->execute()
+			->fetchAssoc();
+	 	$bas = $base['id_rdbms'];
+	 
+	 if( !(empty($ip_bd) && empty($puer_acc_bd) && empty($nom_bd) && empty($soft_bd) && empty($ver_bd))){
+	 	$sitio_web = db_insert('sitio_web')->fields(array(
+        'id_soft' => $soft_web,
+        'sitweb_vers' => $ver_web,
+        'id_serweb' => $test,
+        'doc_root' => $dir_usua,
+        'id_rdbms' => $bas,
+      ))->execute();
+	 }else{
+	 	 $sitio_web = db_insert('sitio_web')->fields(array(
+        'id_soft' => $soft_web,
+        'sitweb_vers' => $ver_web,
+        'id_serweb' => $test,
+        'doc_root' => $dir_usua,
+      ))->execute();
+	 }	
+	  
+	 
+	  $sitio=db_select('sitio_web','t')
+  			->fields('t')
+			->orderBy('id_sitweb','DESC')
+			->execute()
+			->fetchAssoc();
+	 	$test1 = $sitio['id_sitweb'];
+	
+	$url_web= db_insert('url_web')->fields(array(
+        'url_link' => $url_sitio,
+        'id_sitweb' => $test1,
+      ))->execute();
+	
+	$puertos_web= db_insert('puertos_web')->fields(array(
+        'puerto_web' => $puer_acc_web,
+        'id_sitweb' => $test1,
+      ))->execute(); 
+	  
+	$solicitud= db_insert('solicitud')->fields(array(
+        'id_organizacion' => $org,
+        'fecha_sol' => $fecha_sol,
+        'fecha_disp' => $fecha_disp,
+        'fecha_ini' => $fecha_ini,
+        'fecha_fin' => $fecha_fin,
+        'id_sitweb' => $test1,
+      ))->execute(); 	
+	 
+	 $sol1=db_select('solicitud','t')
+  			->fields('t')
+			->orderBy('id_solicitud','DESC')
+			->execute()
+			->fetchAssoc();
+	 	$sol = $sol1['id_solicitud'];
+		
+	$sol_cont= db_insert('solicitud_contacto')->fields(array(
+        'id_solicitud' => $sol,
+        'id_contacto' => $c1
+      ))->execute(); 		
+	
+	$sol_cont= db_insert('solicitud_contacto')->fields(array(
+        'id_solicitud' => $sol,
+        'id_contacto' => $c2
+      ))->execute(); 
+	  
+	drupal_set_message(t('Datos Almacenados correctamente'));
+    }
+    catch (Exception $e) {
+      $transaccion->rollback();	
+      drupal_set_error(t('Hubo un problema. Por favor intente más tarde.'));
+    }
+	 * 
+	 */
+}
+
+
 function Lista_genera_xls($html,$filename){
 
       drupal_add_http_header('Content-Type', 'application/vnd.ms-excel; charset=UTF-8');
@@ -121,3 +303,4 @@ function Lista_genera_xls($html,$filename){
 		
 	return ;
 }
+
