@@ -454,6 +454,8 @@ function alta_rev_validar($form, &$form_submit){
 	$ver_bd=filter_var(strip_tags($form_submit['values']['ver_bd']),FILTER_SANITIZE_STRING);
  
 
+$puer = explode(",",$puer_acc_web);
+
 if(!preg_match('/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\.\- ]+/',$nombre_sitio)){
 	form_set_error('nom_org',t('Ingresar un nombre de sitio válido'));
 }
@@ -508,7 +510,7 @@ else{
 }
 
 
-if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ](\.|[a-záéíóúüñ]+\.?)\s[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ\.]+(\s[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ]+)+$/',$nom_adm)){
+if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ](\.|[a-záéíóúüñ]+\.?)\s?[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ\.]+(\s[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ]+)+$/',$nom_adm)){
 	form_set_error('nom_adm',t('Ingresar un nombre de contacto administrativo válido'));
 }
 
@@ -520,7 +522,7 @@ if(!preg_match('/^(((044|\+[0-9]{1,2})\s?)?[0-9]{5,10}(\s[A-Za-z]+\.?\s[0-9]{1,5
 	form_set_error('tel_adm',t('Ingresar un teléfono de contacto administrativo válido'));
 }
 
-if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ](\.|[a-záéíóúüñ]+\.?)\s[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ\.]+(\s[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ]+)+$/',$nom_tec)){
+if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ](\.|[a-záéíóúüñ]+\.?)\s?[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ\.]+(\s[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ]+)+$/',$nom_tec)){
 	form_set_error('nom_tec',t('Ingresar un nombre de contacto TÉCNICO válido'));
 }
 
@@ -552,7 +554,7 @@ if(!preg_match('/^(([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}([1-9]|[1-9]\d|1\
 if(!preg_match('/^[a-zA-Z][a-zA-Z0-9\- ]+/',$prot_acc_rem)){
 	form_set_err*/
 
-if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])/',$puer_acc_rem)){
+if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])$/',$puer_acc_rem)){
 	form_set_error('puer_acc_rem',t('Ingresar un puerto de acceso válido'));
 }
 
@@ -564,10 +566,11 @@ if(!preg_match('/^(([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}([1-9]|[1-9]\d|1\
 	form_set_error('ip_web',t('Ingresar un dirección IP del servicio web válida'));
 }*/
 
-if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])/',$puer_acc_web)){
+foreach ($puer as $valor) {
+if(!preg_match('/^(\b([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])\b)$/',$valor)){
 	form_set_error('puer_acc_web',t('Ingresar un puerto del servicio web válido'));
 }
-
+}
 if(!preg_match('/^(((ftps?|https?)\:\/\/)?(www\.)?[A-ZÁÉÍÓÚÜÑa-záéíóúüñ0-9\.\_:\-\(\)\/?]+)$/',$url_sitio)){
 	form_set_error('url_sitio',t('Ingresar una url del servicio web  válida'));
 }
@@ -588,7 +591,7 @@ if( !(empty($ip_bd) && empty($puer_acc_bd) && empty($nom_bd) && empty($soft_bd) 
 		form_set_error('ip_bd',t('Ingresar una ip de base de datos válida'));
 	}
 
-	if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])/',$puer_acc_bd)){
+	if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])$/',$puer_acc_bd)){
 		form_set_error('puer_acc_bd',t('Ingresar un puerto de base de datos válido'));
 	}
 
@@ -625,7 +628,7 @@ $form_submit['values']['prot_acc_rem']=$prot_acc_rem;
 $form_submit['values']['puer_acc_rem']=$puer_acc_rem;
 $form_submit['values']['dir_usua']=$dir_usua;
 //$form_submit['values']['ip_web']=$ip_web;
-$form_submit['values']['puer_acc_web']=$puer_acc_web;
+$form_submit['values']['puer_acc_web']=$puer;
 $form_submit['values']['url_sitio']=$url_sitio;
 $form_submit['values']['soft_web']=$soft_web;
 $form_submit['values']['ver_web']=$ver_web;
@@ -660,7 +663,7 @@ function alta_rev_enviar($form, &$form_submit) {
 	$puer_acc_rem=$form_submit['values']['puer_acc_rem'];
 	$dir_usua=$form_submit['values']['dir_usua'];
 	//$ip_web=$form_submit['values']['ip_web'];
-	$puer_acc_web=$form_submit['values']['puer_acc_web'];
+	$puer=$form_submit['values']['puer_acc_web'];
 	$url_sitio=$form_submit['values']['url_sitio'];
 	$soft_web=$form_submit['values']['soft_web'];
 	$ver_web=$form_submit['values']['ver_web'];
@@ -774,12 +777,12 @@ function alta_rev_enviar($form, &$form_submit) {
         'url_link' => $url_sitio,
         'id_sitweb' => $test1,
       ))->execute();
-	
+	foreach ($puer as $valor) {
 	$puertos_web= db_insert('puertos_web')->fields(array(
-        'puerto_web' => $puer_acc_web,
+        'puerto_web' => $valor,
         'id_sitweb' => $test1,
       ))->execute(); 
-	  
+	} 
 	$solicitud= db_insert('solicitud')->fields(array(
 		'sitio_nombre' => $nombre_sitio,
         'id_organizacion' => $org,
