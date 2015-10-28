@@ -13,7 +13,7 @@
 DROP TABLE rev_herr;
 
 --hall_rev
-DROP TABLE hall_rev
+DROP TABLE hall_rev;
 
 --revision
 DROP TABLE revision;
