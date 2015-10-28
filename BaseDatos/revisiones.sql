@@ -128,6 +128,7 @@ CREATE TABLE IF NOT EXISTS solicitud(
 	fecha_ini date,
 	fecha_fin date,
 	id_sitweb integer,
+	sitio_nombre varchar(50),
 	FOREIGN KEY (id_organizacion) REFERENCES organizacion(id_organizacion),
 	FOREIGN KEY (id_sitweb) REFERENCES sitio_web(id_sitweb),
 	CHECK (fecha_sol <= fecha_disp AND fecha_sol <= fecha_ini AND fecha_sol < fecha_fin),
@@ -148,7 +149,6 @@ CREATE TABLE IF NOT EXISTS revision(
 	id_revision serial primary key,
 	id_solicitud integer,
 	nid_auditor integer,
-	sitio_nombre varchar(50),
 	FOREIGN KEY (id_solicitud) REFERENCES solicitud(id_solicitud),
 	FOREIGN KEY (nid_auditor) REFERENCES node(nid)
 );
