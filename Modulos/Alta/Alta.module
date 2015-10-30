@@ -558,7 +558,8 @@ if(!preg_match('/^([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]
 	form_set_error('puer_acc_rem',t('Ingresar un puerto de acceso válido'));
 }
 
-if(!preg_match('/^(\/[A-ZÁÉÍÓÚÜÑa-záéíóúüñ\.\ \/?]+)/',$dir_usua)){
+#if(!preg_match('/^([A-Z]?\:?\\?[A-ZÁÉÍÓÚÜÑa-záéíóúüñ\.\s\/?]+)/',$dir_usua)){
+if(!preg_match('/^([A-ZÁÉÍÓÚÜÑa-záéíóúüñ\.\s\/?\\\:]+)/',$dir_usua)){
 	form_set_error('dir_usua',t('Ingresar un directorio válido'));
 }
 /*
