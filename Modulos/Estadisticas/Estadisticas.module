@@ -1,0 +1,154 @@
+<?php
+/*
+*Form Listado de estadisticas
+*@author: mvasquez & varteaga
+*@date: 29/09/2015
+*/
+
+function Estadisticas_menu() {
+	
+  $items['Estadisticas'] = array(
+    'title' => 'Estadisticas',
+    'page callback' => 'Estadisticas_main',
+    'access arguments' => array('Estadisticas/'),
+    'access callback' => TRUE,
+    'weight' => 10,
+    'menu_name' => 'main-menu',
+    'options' => array('attributes' => array('class' => 'Estadisticas_main')),
+);
+  
+  return $items;
+}
+
+function Estadistica_permission() {
+  return array(
+    'Estadisticas/' => array(
+      'title' => t('Permisos para visualizar las estadisticas de revisiones'),
+      'description' => t('Seleccion de usuarios que pueden tener acceso.'),
+    ),
+  );
+}
+
+
+function Estadisticas_main(){
+
+  if (empty($form_submit['storage'])) {
+    $form_submit['storage'] = array(
+      'step' => 'Generar_encuestas_form',
+    );
+  }
+  $function = $form_submit['storage']['step'];
+  $form = $function($form, $form_submit);
+  return $form;
+}
+
+function Generar_encuestas_form($form, $form_state){
+	
+	$res = Generar_query_encuesta();
+	$headers=$res['headers'];
+	$raws=$res['raws'];
+ 	$raws2=array();
+	foreach ($raws as $raw) {
+		$raws2[$raw['ID']]=$raw;
+	}
+
+	 $form['solicitud'] = array(
+    '#type' => 'tableselect',
+    '#header' => $headers,
+    '#options' => $raws2,
+    '#required' => TRUE,
+    '#empty' => t('No existen solicitudes'),
+    '#multiple' => FALSE,
+  	);
+	
+	$auditor=db_select('node','t')
+  			->fields('t',array('nid','title'))
+			->orderBy('title','ASC')
+			->condition('type','auditor','=')
+			->execute()
+			->fetchAllKeyed();
+    		    
+
+	 $form['auditor'] = array(
+    '#title' => t('Auditor que realizará la revisión:'),
+    '#type' => 'select',
+    '#options' => $auditor,
+    '#required' => TRUE,
+    '#empty_option' => '-Seleccione-',
+  );
+  
+  /*
+
+  $res = Generar_query_hallazgo();
+	$headers1=$res['headers'];
+	$raws=$res['raws'];
+ 	$raws3=array();
+	foreach ($raws as $raw) {
+		$raws3[$raw['NID']]=$raw;
+	}
+    		    
+	 $form['hallazgo'] = array(
+	 '#title' => t('Hallazgos que se encontraron en la revisión:'),
+    '#type' => 'tableselect',
+    '#header' => $headers1,
+    '#options' => $raws3,
+    '#required' => TRUE,
+    '#empty' => t('No existen hallazgos'),
+    '#multiple' => TRUE,
+  	);
+	
+	$res = Generar_query_herramienta();
+	$headers2=$res['headers'];
+	$raws=$res['raws'];
+ 	$raws4=array();
+	foreach ($raws as $raw) {
+		$raws4[$raw['NID']]=$raw;
+	}
+    		    
+	 $form['herramienta'] = array(
+	'#title' => t('Herramientas que se usaron en la revisión:'),
+    '#type' => 'tableselect',
+    '#header' => $headers2,
+    '#options' => $raws4,
+    '#required' => TRUE,
+    '#empty' => t('No existen Herramientas'),
+    '#multiple' => TRUE,
+  	);
+
+	$form['submit'] = array(
+      '#value' => 'Generar documento',
+      '#type' => 'submit',
+      '#submit' => array('enviar_generar'),
+    );
+
+	*/
+
+  return $form;	
+}
+
+function Generar_query_encuesta(){
+	
+	  $solicitud = db_query('SELECT s.id_solicitud, uw.url_link, s.fecha_ini, s.fecha_fin FROM solicitud s, sitio_web sitw, url_web uw where s.id_sitweb = sitw.id_sitweb and sitw.id_sitweb = uw.id_sitweb;');
+	  db_set_active('default');
+  
+	  $res = array();
+	  
+      foreach ($solicitud as $valor) {
+	    array_push($res,get_object_vars($valor));
+  	  }	
+   	  
+	  $array = array();
+	  $array['raws'] =array();
+	  $array['headers'] =array( 'ID'=>'ID','URL_Sitio'=>'URL_Sitio','Fecha_Inicio'=>'Fecha_Inicio','Fecha_Fin'=>"Fecha_Fin");
+	  
+	  foreach ($res as $valor) {  
+	  	$array_tmp = array();
+		  	$array_tmp["ID"] 				= $valor['id_solicitud'];
+			$array_tmp["URL_Sitio"] 		= $valor['url_link'];
+			$array_tmp["Fecha_Inicio"]	 	= $valor['fecha_ini'];	
+			$array_tmp["Fecha_Fin"] 		= $valor['fecha_fin'];
+	    array_push($array['raws'],$array_tmp);
+	  }
+	  return $array;		
+	
+}
