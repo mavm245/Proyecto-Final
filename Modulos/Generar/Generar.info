@@ -3,3 +3,4 @@ name = Generar documento.
 description = Generar documento con los hallazgos descubiertos durante la revision.
 package = A PROYECTO MODULES
 core = 7.x
+scripts[]=Generar.js

@@ -10,21 +10,49 @@ function Generar_menu() {
 	
   $items['Generar'] = array(
     'title' => 'Generar',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('Generar_main'),
+    'page callback' => 'Generar_main',
+    'access arguments' => array('Generar/'),
     'access callback' => TRUE,
     'weight' => 9,
     'menu_name' => 'main-menu',
     'options' => array('attributes' => array('class' => 'Generar_main')),
 );
-  
-  $items['Generar/Todas/download'] = array(
-    'title' => 'Revision download',    
-	'page callback' => 'revision_word_download',
-    'access arguments' => array('Generar/Todas'),
+ 
+ $items['Generar/Revision'] = array(
+    'title' => 'Revision inicial del sitio',    
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('Generar_primera_form'),
+    'access arguments' => array('Generar/Revision'),
   );
-
   
+  
+  $items['Generar/Primera-seguimiento'] = array(
+    'title' => 'Primera revision de seguimiento.',    
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('Generar_segunda_form'),
+    'access arguments' => array('Generar/Primera-seguimiento'),
+  );
+  
+  $items['Generar/Segunda-seguimiento'] = array(
+    'title' => 'Segunda revision de seguimiento.',    
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('Generar_tercera_form'),
+    'access arguments' => array('Generar'),
+  );
+  
+   $items['Generar/download'] = array(
+    'title' => 'Revision Download',    
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('revision_word_download'),
+    'access arguments' => array('Generar'),
+  );
+  
+  $items['Generar/terminar'] = array(
+    'title' => 'Terminar Revision',    
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('terminar_revision'),
+    'access arguments' => array('Generar'),
+  );
   return $items;
 }
 
@@ -34,28 +62,218 @@ function Generar_permission() {
       'title' => t('Permisos para visualizar las Generar revisiones'),
       'description' => t('Seleccion de usuarios que pueden tener acceso.'),
     ),
-    'Generar/Todas' => array(
-      'title' => t('Permisos para visualizar las Generar Todas'),
+    'Generar/Revision' => array(
+      'title' => t('Permisos para visualizar las Generar revision'),
+      'description' => t('Seleccion de usuarios que pueden tener acceso.'),
+    ),
+    'Generar/Primera-seguimiento' => array(
+      'title' => t('Permisos para visualizar las Generar Primera Revision de Seguimiento'),
+      'description' => t('Seleccion de usuarios que pueden tener acceso.'),
+    ),
+    'Generar/Segunda-seguimiento' => array(
+      'title' => t('Permisos para visualizar las Generar Segunda Revision de Seguimiento'),
+      'description' => t('Seleccion de usuarios que pueden tener acceso.'),
+    ),
+	'Generar/download' => array(
+      'title' => t('Permisos para visualizar las Generar Download'),
+      'description' => t('Seleccion de usuarios que pueden tener acceso.'),
+    ),
+    'Generar/terminar' => array(
+      'title' => t('Permisos para visualizar las Generar Terminar'),
       'description' => t('Seleccion de usuarios que pueden tener acceso.'),
     ),
   );
 }
-function Generar_main($form, &$form_submit) {
-	
-  if (empty($form_submit['storage'])) {
-    $form_submit['storage'] = array(
-      'step' => 'Generar_solicitudes_form',
-    );
-  }
-  $function = $form_submit['storage']['step'];
-  $form = $function($form, $form_submit);
-  return $form;
+function Generar_main() {
+			  return t('<ul style="text-align: justify;">
+		  		<li>'.l( t("Generar Revisión Inicial"),'Generar/Revision').'</li>
+		  		<li>'.l( t("Generar Primera Revision de Seguimiento"),'Generar/Primera-seguimiento').'</li>
+		  		<li>'.l( t("Generar Segunda Revision de Seguimiento"),'Generar/Segunda-seguimiento').'</li>
+		    	</ul>');
+			  	
 }
 
 
-function Generar_solicitudes_form($form, $form_state){
+function Generar_primera_form($form, $form_state){
 	
-	$res = Generar_query_solicitud();
+			$path=drupal_get_path('module','Generar');
+			 drupal_add_js($path.'/Generar.js',array('type'=>'file','weight'=>1));
+	$revision = 1;
+	$res = Generar_query_solicitud($revision);
+	$headers=$res['headers'];
+	$raws=$res['raws'];
+ 	$raws2=array();
+	foreach ($raws as $raw) {
+		$raws2[$raw['ID']]=$raw;
+	}
+
+	 $form['solicitud'] = array(
+    '#type' => 'tableselect',
+    '#header' => $headers,
+    '#options' => $raws2,
+    '#required' => TRUE,
+    '#empty' => t('No existen solicitudes'),
+    '#multiple' => FALSE,
+  	);
+	
+	$auditor=db_select('node','t')
+  			->fields('t',array('nid','title'))
+			->orderBy('title','ASC')
+			->condition('type','auditor','=')
+			->execute()
+			->fetchAllKeyed();
+    		    
+
+	 $form['auditor'] = array(
+    '#title' => t('Auditor que realizará la revisión:'),
+    '#type' => 'select',
+    '#options' => $auditor,
+    '#required' => TRUE,
+    '#empty_option' => '-Seleccione-',
+  );
+  
+  $res = Generar_query_hallazgo();
+	$headers1=$res['headers'];
+	$raws=$res['raws'];
+ 	$raws3=array();
+	foreach ($raws as $raw) {
+		$raws3[$raw['NID']]=$raw;
+	}
+    		    
+	 $form['hallazgo'] = array(
+	 '#title' => t('Hallazgos que se encontraron en la revisión:'),
+    '#type' => 'tableselect',
+    '#header' => $headers1,
+    '#options' => $raws3,
+    '#required' => TRUE,
+    '#empty' => t('No existen hallazgos'),
+    '#multiple' => TRUE,
+  	);
+	
+	$res = Generar_query_herramienta();
+	$headers2=$res['headers'];
+	$raws=$res['raws'];
+ 	$raws4=array();
+	foreach ($raws as $raw) {
+		$raws4[$raw['NID']]=$raw;
+	}
+    		    
+	 $form['herramienta'] = array(
+	'#title' => t('Herramientas que se usaron en la revisión:'),
+    '#type' => 'tableselect',
+    '#header' => $headers2,
+    '#options' => $raws4,
+    '#required' => TRUE,
+    '#empty' => t('No existen Herramientas'),
+    '#multiple' => TRUE,
+  	);
+
+	$form['submit1'] = array(
+      '#value' => 'Almacenar',
+      '#type' => 'submit',
+      '#submit' => array('almacenar_generar'),
+    );
+	
+	$form['submit2'] = array(
+      '#value' => 'Actualizar',
+      '#type' => 'submit',
+      '#submit' => array('actualizar_generar'),
+    );
+	
+
+  return $form;	
+}
+function Generar_segunda_form($form, $form_state){
+	
+	$revision = 2;
+	$res = Generar_query_solicitud($revision);
+	$headers=$res['headers'];
+	$raws=$res['raws'];
+ 	$raws2=array();
+	foreach ($raws as $raw) {
+		$raws2[$raw['ID']]=$raw;
+	}
+
+	 $form['solicitud'] = array(
+    '#type' => 'tableselect',
+    '#header' => $headers,
+    '#options' => $raws2,
+    '#required' => TRUE,
+    '#empty' => t('No existen solicitudes'),
+    '#multiple' => FALSE,
+  	);
+	
+	$auditor=db_select('node','t')
+  			->fields('t',array('nid','title'))
+			->orderBy('title','ASC')
+			->condition('type','auditor','=')
+			->execute()
+			->fetchAllKeyed();
+    		    
+
+	 $form['auditor'] = array(
+    '#title' => t('Auditor que realizará la revisión:'),
+    '#type' => 'select',
+    '#options' => $auditor,
+    '#required' => TRUE,
+    '#empty_option' => '-Seleccione-',
+  );
+  
+  $res = Generar_query_hallazgo();
+	$headers1=$res['headers'];
+	$raws=$res['raws'];
+ 	$raws3=array();
+	foreach ($raws as $raw) {
+		$raws3[$raw['NID']]=$raw;
+	}
+    		    
+	 $form['hallazgo'] = array(
+	 '#title' => t('Hallazgos que se encontraron en la revisión:'),
+    '#type' => 'tableselect',
+    '#header' => $headers1,
+    '#options' => $raws3,
+    '#required' => TRUE,
+    '#empty' => t('No existen hallazgos'),
+    '#multiple' => TRUE,
+  	);
+	
+	$res = Generar_query_herramienta();
+	$headers2=$res['headers'];
+	$raws=$res['raws'];
+ 	$raws4=array();
+	foreach ($raws as $raw) {
+		$raws4[$raw['NID']]=$raw;
+	}
+    		    
+	 $form['herramienta'] = array(
+	'#title' => t('Herramientas que se usaron en la revisión:'),
+    '#type' => 'tableselect',
+    '#header' => $headers2,
+    '#options' => $raws4,
+    '#required' => TRUE,
+    '#empty' => t('No existen Herramientas'),
+    '#multiple' => TRUE,
+  	);
+
+	$form['submit1'] = array(
+      '#value' => 'Almacenar',
+      '#type' => 'submit',
+      '#submit' => array('almacenar_generar_segunda'),
+    );
+	
+	$form['submit2'] = array(
+      '#value' => 'Actualizar',
+      '#type' => 'submit',
+      '#submit' => array('actualizar_generar_segunda'),
+    );
+  return $form;	
+	
+}
+
+function Generar_tercera_form($form, $form_state){
+	
+	$revision = 3;
+	$res = Generar_query_solicitud($revision);
 	$headers=$res['headers'];
 	$raws=$res['raws'];
  	$raws2=array();
@@ -125,128 +343,31 @@ function Generar_solicitudes_form($form, $form_state){
   	);
 
 	$form['submit'] = array(
-      '#value' => 'Generar documento',
+      '#value' => 'Actualizar',
       '#type' => 'submit',
-      '#submit' => array('enviar_generar'),
+      '#submit' => array('actualizar_generar'),
     );
   return $form;	
-}
-
-function Generar_query_solicitud(){
-	
-	  $solicitud = db_query('SELECT s.id_solicitud, uw.url_link, s.fecha_ini, s.fecha_fin FROM solicitud s, sitio_web sitw, url_web uw where s.id_sitweb = sitw.id_sitweb and sitw.id_sitweb = uw.id_sitweb;');
-	  db_set_active('default');
-  
-	  $res = array();
-	  
-      foreach ($solicitud as $valor) {
-	    array_push($res,get_object_vars($valor));
-  	  }	
-   	  
-	  $array = array();
-	  $array['raws'] =array();
-	  $array['headers'] =array( 'ID'=>'ID','URL_Sitio'=>'URL_Sitio','Fecha_Inicio'=>'Fecha_Inicio','Fecha_Fin'=>"Fecha_Fin");
-	  
-	  foreach ($res as $valor) {  
-	  	$array_tmp = array();
-		  	$array_tmp["ID"] 				= $valor['id_solicitud'];
-			$array_tmp["URL_Sitio"] 		= $valor['url_link'];
-			$array_tmp["Fecha_Inicio"]	 	= $valor['fecha_ini'];	
-			$array_tmp["Fecha_Fin"] 		= $valor['fecha_fin'];
-	    array_push($array['raws'],$array_tmp);
-	  }
-	  return $array;		
 	
 }
 
-function Generar_query_hallazgo(){
-	
-	$type = "hallazgo"; 
-	$nodes = node_load_multiple(array(), array('type' => $type)); 
-		
-	  $array = array();
-	  $array['raws'] =array();
-	  $array['headers'] =array( 'NID'=>'NID','Titulo'=>'Titulo','Descripcion'=>'Descripcion','Nivel'=>'Nivel','Tipo Objetivo'=>'Tipo Objetivo');
-	  
-	  foreach($nodes as $hallazgo){
-	  	
-	  	$nid = $hallazgo->nid;
-	  	$descripcion = generar_extraer($nid, 'field_descripcion_hallazgo','safe_value');
-		$nivel = generar_extraer($nid, 'field_nivel','value');
-		$tipo  = db_select ('node','a');
-		$tipo ->join('field_data_field_objetivo_id','b','a.nid = b.field_objetivo_id_target_id');
-		$tipo = $tipo 
-				->fields('a',array('title'))
-				->condition('b.entity_id',$nid,'=')
-				->execute()
-				->fetchField();
-			  
-	  	$array_tmp= array();
-			$array_tmp["NID"] 			= $hallazgo->nid;
-		  	$array_tmp["Titulo"] 		= $hallazgo->title;
-			$array_tmp["Descripcion"]	= $descripcion;
-			if($nivel >= 0 && $nivel <= 2.9 ){
-			$nivel = 'Bajo - '.$nivel;
-			}
-			if($nivel >= 3.0 && $nivel <= 6.9 ){
-			$nivel = 'Medio - '.$nivel;
-			}
-			if($nivel >= 7.0){
-			$nivel = 'Alto - '.$nivel;
-			}
-			$array_tmp["Nivel"]	 		= $nivel;
-			$array_tmp["Tipo Objetivo"]	= $tipo;
-	    array_push($array['raws'],$array_tmp);
-	  }
-	  return $array;		
-	
-}
-
-function cmp($a, $b)
-{
-    return strcmp($a['Herramienta'], $b['Herramienta']);
-}
-
-function Generar_query_herramienta(){
-	
-	$type = "herramienta"; 
-	$nodes = node_load_multiple(array(), array('type' => $type)); 
-	
-	  $array = array();
-	  $array['raws'] =array();
-	  $array['headers'] =array( 'NID'=>'NID','Herramienta'=>'Herramienta');
-	  
-	  foreach($nodes as $herramienta){
-	  	
-	  	$nid = $herramienta->nid;
-	  	$array_tmp= array();
-			$array_tmp["NID"] 				= $herramienta->nid;
-		  	$array_tmp["Herramienta"] 		= $herramienta->title;
-
-	    array_push($array['raws'],$array_tmp);
-	  }
-	  
-	  return $array;		
-	
-}
-
-
-function generar_extraer($nid,$campo,$var){
-	$nodo = entity_load_single('node',$nid);
-  	$nodo2 = $nodo->$campo;
-  	$nodo3 = $nodo2['und'];
-  	$nodo4 = $nodo3[0];	
-	$cadena = $nodo4["$var"];
-	return $cadena;
-}
-
-function enviar_generar($form, &$form_submit) {
+function almacenar_generar($form, &$form_submit) {
 	$values = $form_submit['values'];
 	$solicitud = strip_tags($form_submit['values']['solicitud']);
 	$auditor = strip_tags($form_submit['values']['auditor']);
 	$hallazgos = $form_submit['values']['hallazgo'];
 	$herramientas = $form_submit['values']['herramienta'];
+	print_r($hallazgos);
+	$rev = db_select ('revision','s')
+		 ->fields('s',array('id_solicitud'))
+		 ->condition('s.id_solicitud',$solicitud,'=')
+		 ->execute()
+		 ->fetchField();
 	
+	if(!empty($rev)){
+		form_set_error('Solicitud',t('Ya hay revision almacenada para esa solicitud, solo se puede actualizar.'));
+	}
+	else{
 	$transaccion = db_transaction();
   	try {
       $revision = db_insert('revision')->fields(array(
@@ -262,6 +383,7 @@ function enviar_generar($form, &$form_submit) {
 	 	$rev = $rev1['id_revision'];
 	  $_SESSION['revision'] = $rev;
 	  $_SESSION['solicitud'] = $solicitud;
+
 	  foreach($hallazgos as $hall){		
 		if($hall != 0){
 	  	$hall_rev = db_insert('hall_rev')->fields(array(
@@ -269,6 +391,8 @@ function enviar_generar($form, &$form_submit) {
 		'nid_hallazgo' => $hall,
       ))->execute();}
 	  }
+	  
+	 
 	  foreach($herramientas as $herr){
 	  	if($herr != 0){		
 	  	$rev_herr = db_insert('rev_herr')->fields(array(
@@ -278,22 +402,293 @@ function enviar_generar($form, &$form_submit) {
       }
 	  }
       drupal_set_message(t('Datos Almacenados correctamente'));
-      drupal_goto('Generar/Todas/download');
+      //
     }
     catch (Exception $e) {
       $transaccion->rollback();	
-      drupal_set_error(t('Hubo un problema. Por favor intente más tarde.'));
+      drupal_set_message(t('Hubo un problema. Por favor intente más tarde.'),'error');
+    }
     }
 	
+}
+
+function almacenar_generar_segunda($form, &$form_submit) {
+	$values = $form_submit['values'];
+	$solicitud = strip_tags($form_submit['values']['solicitud']);
+	$auditor = strip_tags($form_submit['values']['auditor']);
+	$hallazgos = $form_submit['values']['hallazgo'];
+	$herramientas = $form_submit['values']['herramienta'];
+	print_r($hallazgos);
+	
+	$rev = db_select ('revision','s')
+		 ->fields('s',array('estado_rev'))
+		 ->condition('s.id_solicitud',$solicitud,'=')
+		 ->condition('s.estado_rev','2','=')
+		 ->execute()
+		 ->fetchField();
+	
+	if(!empty($rev)){
+		form_set_error('Solicitud',t('Ya hay revision almacenada para esa solicitud, solo se puede actualizar.'));
+	}
+	else{
+	$transaccion = db_transaction();
+  	try {
+      $revision = db_insert('revision')->fields(array(
+        'id_solicitud' => $solicitud,
+		'nid_auditor' => $auditor,
+		'estado_rev' => 2,
+      ))->execute();
+	  
+	  $rev1=db_select('revision','t')
+  			->fields('t') 
+			->orderBy('id_revision','DESC')
+			->execute()
+			->fetchAssoc();
+	 	$rev = $rev1['id_revision'];
+	  $_SESSION['revision'] = $rev;
+	  $_SESSION['solicitud'] = $solicitud;
+
+	  foreach($hallazgos as $hall){		
+		if($hall != 0){
+	  	$hall_rev = db_insert('hall_rev')->fields(array(
+        'id_revision' => $rev,
+		'nid_hallazgo' => $hall,
+      ))->execute();}
+	  }
+	  
+	 
+	  foreach($herramientas as $herr){
+	  	if($herr != 0){		
+	  	$rev_herr = db_insert('rev_herr')->fields(array(
+        'id_revision' => $rev,
+		'nid_herramienta' => $herr,
+      ))->execute();
+      }
+	  }
+      drupal_set_message(t('Datos Almacenados correctamente'));
+      //
+    }
+    catch (Exception $e) {
+      $transaccion->rollback();	
+      drupal_set_message(t('Hubo un problema. Por favor intente más tarde.'),'error');
+    }
+    }
+	
+}
+
+
+function actualizar_generar($form, &$form_submit) {
+	$values = $form_submit['values'];
+	$solicitud = strip_tags($form_submit['values']['solicitud']);
+	$auditor = strip_tags($form_submit['values']['auditor']);
+	$hallazgos = $form_submit['values']['hallazgo'];
+	$herramientas = $form_submit['values']['herramienta'];
+	
+		$rev = db_select ('revision','s')
+		 ->fields('s',array('id_revision'))
+		 ->condition('s.id_solicitud',$solicitud,'=')
+		 ->execute()
+		 ->fetchField();
+	$revision = $rev;
+	//drupal_set_message(t('Something @var just happened.', array('@var' => $revision)), 'butterflies');
+	if(empty($rev)){
+		form_set_error('solicitud',t('No hay revisiones almacenadas para esa solicitud'));
+	}else{
+	
+	$transaccion = db_transaction();
+  	try {
+
+	  $_SESSION['revision'] = $revision;
+	  $_SESSION['solicitud'] = $solicitud;
+	  
+	  $borrar_hall = db_delete('hall_rev')
+	  			->condition('id_revision',$revision,'=')
+				->execute();
+	  $borrar_herr = db_delete('rev_herr')
+	  			->condition('id_revision',$revision,'=')
+				->execute();
+	  
+	  $revis = db_update('revision')->fields(array(
+		'nid_auditor' => $auditor,
+      ))
+      ->condition('id_solicitud',$solicitud,'=')
+      ->execute();
+	  
+	  foreach($hallazgos as $hall){		
+		if($hall != 0){
+	  	$hall_rev = db_insert('hall_rev')->fields(array(
+        'id_revision' => $revision,
+		'nid_hallazgo' => $hall,
+      ))->execute();}
+	  }
+	  foreach($herramientas as $herr){
+	  	if($herr != 0){		
+	  	$rev_herr = db_insert('rev_herr')->fields(array(
+        'id_revision' => $revision,
+		'nid_herramienta' => $herr,
+      ))->execute();
+      }
+	  }
+      drupal_set_message(t('Datos Actualizados correctamente'));
+      
+    }
+    catch (Exception $e) {
+      $transaccion->rollback();	
+      drupal_set_message(t('Hubo un problema. Por favor intente más tarde.'),'error');
+    }
+    }
+}
+
+function actualizar_generar_segunda($form, &$form_submit) {
+	$values = $form_submit['values'];
+	$solicitud = strip_tags($form_submit['values']['solicitud']);
+	$auditor = strip_tags($form_submit['values']['auditor']);
+	$hallazgos = $form_submit['values']['hallazgo'];
+	$herramientas = $form_submit['values']['herramienta'];
+	
+		 $rev = db_select ('revision','s')
+		 ->fields('s',array('id_revision'))
+		 ->condition('s.id_solicitud',$solicitud,'=')
+		 ->condition('s.estado_rev','2','=')
+		 ->execute()
+		 ->fetchField();
+	$revision = $rev;
+	//drupal_set_message(t('Something @var just happened.', array('@var' => $revision)), 'butterflies');
+	if(empty($rev)){
+		form_set_error('solicitud',t('No hay revisiones almacenadas para esa solicitud'));
+	}else{
+	
+	$transaccion = db_transaction();
+  	try {
+
+	  $_SESSION['revision'] = $revision;
+	  $_SESSION['solicitud'] = $solicitud;
+	  
+	  $borrar_hall = db_delete('hall_rev')
+	  			->condition('id_revision',$revision,'=')
+				->execute();
+	  $borrar_herr = db_delete('rev_herr')
+	  			->condition('id_revision',$revision,'=')
+				->execute();
+	  
+	  $revis = db_update('revision')->fields(array(
+		'nid_auditor' => $auditor,
+      ))
+      ->condition('id_solicitud',$solicitud,'=')
+      ->execute();
+	  
+	  foreach($hallazgos as $hall){		
+		if($hall != 0){
+	  	$hall_rev = db_insert('hall_rev')->fields(array(
+        'id_revision' => $revision,
+		'nid_hallazgo' => $hall,
+      ))->execute();}
+	  }
+	  foreach($herramientas as $herr){
+	  	if($herr != 0){		
+	  	$rev_herr = db_insert('rev_herr')->fields(array(
+        'id_revision' => $revision,
+		'nid_herramienta' => $herr,
+      ))->execute();
+      }
+	  }
+      drupal_set_message(t('Datos Actualizados correctamente'));
+      
+    }
+    catch (Exception $e) {
+      $transaccion->rollback();	
+      drupal_set_message(t('Hubo un problema. Por favor intente más tarde.'),'error');
+    }
+    }
 }
 
 
 function revision_word_download(){
-	$res = genera_html();
-  revision_generar_doc($res,"Revision de seguridad");
+		$idsol=filter_var(strip_tags(isset($_GET['idSol'])?$_GET['idSol']:0),FILTER_SANITIZE_NUMBER_INT);
+		//$idest=filter_var(strip_tags(isset($_GET['idEst'])?$_GET['idEst']:0),FILTER_SANITIZE_NUMBER_INT);
+		if (!empty($idsol)){
+		$rev = db_select ('revision','s')
+		 ->fields('s',array('id_revision'))
+		 ->condition('s.id_solicitud',$idsol,'=')
+		 //->condition('s.estado_rev',$idest,'=')
+		 ->execute()
+		 ->fetchField();
+		if (!empty($rev)){
+		$_SESSION['revision'] = $rev;
+		$_SESSION['solicitud'] = $idsol;
+		$res = genera_html();
+  		revision_generar_doc($res,"Revision de seguridad");
+		}else{
+		drupal_goto('Generar/Revision');
+		drupal_set_message(t('Error en la matrix'),'error');	
+		}
+		}else{
+		drupal_set_message(t('Error en la matrix'),'error');	
+			
+		}
  return;
 	
 }
+
+function terminar_revision($form, &$form_submit){
+		$idsol=filter_var(strip_tags(isset($_GET['idSol'])?$_GET['idSol']:0),FILTER_SANITIZE_NUMBER_INT);
+		//$idest=filter_var(strip_tags(isset($_GET['idEst'])?$_GET['idEst']:0),FILTER_SANITIZE_NUMBER_INT);	
+		$info9 = "<div class='apartado'><u>Revision de solicitd con id $idsol terminada </u></div>";  		
+
+		if (!empty($idsol)){
+			
+		$rev = db_select ('revision','s')
+		 ->fields('s',array('id_revision'))
+		 ->condition('s.id_solicitud',$idsol,'=')
+		// ->condition('s.estado_rev',$idest,'=')
+		 ->execute()
+		 ->fetchField();
+		if(empty($rev)){
+		form_set_error('Solicitud',t('No hay revisiones para esta solicitud, no se puede Finalizar'));
+		drupal_goto('Generar');
+		}
+		else{
+		try{
+		if($idest==1){
+		 $revis = db_update('solicitud')->fields(array(
+		'num_rev' => 2,
+      ))
+      ->condition('id_solicitud',$idsol,'=')
+      ->execute();
+		}
+		
+		if($idest==2){
+		 $revis = db_update('solicitud')->fields(array(
+		'num_rev' => 3,
+      ))
+      ->condition('id_solicitud',$idsol,'=')
+      ->execute();
+		}
+		
+		if($idest==3){
+		 $revis = db_update('solicitud')->fields(array(
+		'num_rev' => 3,
+      ))
+      ->condition('id_solicitud',$idsol,'=')
+      ->execute();
+		}
+		drupal_set_message(t('Revision inicial finalizada correctamente'));
+		unset ($_SESSION['revision']);
+		unset ($_SESSION['solicitud']);	
+		}
+		catch(Exception $e) {
+			$transaccion->rollback();	
+      drupal_set_message(t('Hubo un problema. Por favor intente más tarde.'),'error');
+		}
+	}
+		}else{
+		drupal_set_message(t('Error en la matrix'),'error');	
+			
+		}
+ return;
+	
+}
+
 
 function revision_generar_doc($html,$filename){
 	drupal_add_http_header('Content-Type', 'application/vnd.ms-word; charset=UTF-8');
@@ -330,6 +725,7 @@ function formato_fecha($fecha){
 
 
 function genera_html(){
+	
 	$url  = db_select ('revision','r');
 		$url ->join('solicitud','s','r.id_solicitud = s.id_solicitud');
 		$url ->join('sitio_web','sw','s.id_sitweb = sw.id_sitweb');
@@ -364,7 +760,7 @@ function genera_html(){
 	$fecha_fin  = db_select ('solicitud','s')
 		 ->fields('s',array('fecha_fin'))
 		 ->condition('s.id_solicitud',$_SESSION['solicitud'],'=')
-		 ->execute()
+		 ->execute()	
 		 ->fetchField();
 	
 	$fecha_ini = formato_fecha($fecha_ini);
@@ -372,10 +768,43 @@ function genera_html(){
 	
 	$fecha = "Del ".$fecha_ini." a ".$fecha_fin." del ".date("Y");
 	
-	
+	$rev = db_select ('solicitud','s')
+		 ->fields('s',array('num_rev'))
+		 ->condition('s.id_solicitud',$_SESSION['solicitud'],'=')
+		 ->execute()
+		 ->fetchField();
+	if($rev==1){
+	$antecedentes = '';
+	}
+	if($rev==2){
+	$antecedentes = '<div style="mso-element:para-border-div;border:solid #DBE5F1 3.0pt;padding:
+0cm 0cm 0cm 0cm;background:#DBE5F1">
+
+<h2 align=center style="text-align:center;background:#DBE5F1"><span
+style="mso-bookmark:_Toc254176315"><a name="_Toc433285817">Antecedentes</a></span></h2>
+
+</div>
+<p class=MsoNoSpacing style="text-align:justify">Prueba de mensaje para REVISION DE SEGUIMIENTO UNO</p>';
+	}
+		if($rev == 3){
+			$antecedentes = '<div style="mso-element:para-border-div;border:solid #DBE5F1 3.0pt;padding:
+0cm 0cm 0cm 0cm;background:#DBE5F1">
+
+<h2 align=center style="text-align:center;background:#DBE5F1"><span
+style="mso-bookmark:_Toc254176315"><a name="_Toc433285817">Antecedentes</a></span></h2>
+
+</div>
+<p class=MsoNoSpacing style="text-align:justify">Prueba de mensaje para REVISION DE SEGUIMIENTO DOS</p>';
+		}
+
 		$consulta = "select h.title from revision r, rev_herr sw, node h where sw.id_revision=r.id_revision and sw.nid_herramienta=h.nid and r.id_revision =".$_SESSION['revision'].";";
 		$herramientas = db_query($consulta);
 		$rev = ' ';
+		$bajos = 0;
+		$medios = 0;
+		$altos = 0;
+		$tablaser = '';
+		$tablapl = '';
 foreach($herramientas as $titulo){
 		$tool =$titulo->title;
 		$rev = $rev.'<p class=MsoListParagraphCxSpLast style="text-indent:-18.0pt;mso-list:l9 level1 lfo3"><![if !supportLists]><span
@@ -385,7 +814,7 @@ style="font:7.0pt "Times New Roman"">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&
 </span></span></span><![endif]><span style="font-size:12.0pt;line-height:115%">'.$tool.'<o:p></o:p></span></p>';
 }
 		
-		$consulta1 = "select h.nid, h.title from revision r, hall_rev hr, node h where hr.id_revision=r.id_revision and hr.nid_hallazgo=h.nid and r.id_revision = ".$_SESSION['revision'].";";
+		$consulta1 = "select h.nid, h.title, n.field_nivel_value from revision r, hall_rev hr, node h, field_data_field_nivel n where hr.id_revision=r.id_revision and hr.nid_hallazgo=h.nid and n.entity_id = h.nid and r.id_revision =".$_SESSION['revision']."order by field_nivel_value desc;";
 		$hallazgos = db_query($consulta1);
 		
 		foreach($hallazgos as $info){
@@ -395,12 +824,15 @@ style="font:7.0pt "Times New Roman"">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&
 		$nivel = generar_extraer($prueba, 'field_nivel','value');
 		if($nivel >= 0 && $nivel <= 2.9 ){
 			$nivel = 'Bajo - '.$nivel;
+			$bajos++;
 			}
 			if($nivel >= 3.0 && $nivel <= 6.9 ){
 			$nivel = 'Medio - '.$nivel;
+			$medios++;
 			}
 			if($nivel >= 7.0){
 			$nivel = 'Alto - '.$nivel;
+			$altos++;
 		}
 		$consulta2 = "select n.nid, rf.field_descripcion_value from node n, field_data_field_hallazgo_fk r, field_data_field_descripcion rf where n.nid = r.entity_id  and r.field_hallazgo_fk_target_id = ".$prueba." and n.nid = rf.entity_id;";
 		$recomendaciones = db_query($consulta2);
@@ -864,10 +1296,33 @@ page-break-before:always">
 
 <p class=MsoNormal style="margin:0cm;margin-bottom:.0001pt;line-height:normal"><span
 style="mso-fareast-font-family:"Times New Roman";mso-fareast-theme-font:minor-fareast"><o:p>&nbsp;</o:p></span></p>';			
-		
-	
 }
-		}
+}
+if(empty($tablaser)){
+		$tablaser = '<p class=MsoNormal style="margin-top:0cm;margin-right:0cm;margin-bottom:8.0pt;
+margin-left:0cm;line-height:120%"><span Times New
+";mso-fareast-theme-font:minor-fareast;mso-hansi-font-family: "Times New "; ">NO SE ENCONTRARON HALLAZGOS EN ESTE RUBRO.<span style="font-size:12.0pt;line-height:120%;
+font-family:"Times New Roman",serif;mso-fareast-language:ES-MX;mso-bidi-language:
+AR-SA"><br clear=all style="mso-special-character:line-break;page-break-before:
+always">
+</span><o:p></o:p></p>
+
+</span>';
+//$tablaser ='';
+	}
+
+if(empty($tablapl)){
+		$tablapl= '<p class=MsoNormal style="margin-top:0cm;margin-right:0cm;margin-bottom:8.0pt;
+margin-left:0cm;line-height:120%"><span Times New
+";mso-fareast-theme-font:minor-fareast;mso-hansi-font-family: "Times New "; ">NO SE ENCONTRARON HALLAZGOS EN ESTE RUBRO.<span style="font-size:12.0pt;line-height:120%;
+font-family:"Times New Roman",serif;mso-fareast-language:ES-MX;mso-bidi-language:
+AR-SA"><br clear=all style="mso-special-character:line-break;page-break-before:
+always">
+</span><o:p></o:p></p>
+
+</span>';
+//$tablapl = '';
+	}
 
 $html = '<html xmlns:v="urn:schemas-microsoft-com:vml"
 xmlns:o="urn:schemas-microsoft-com:office:office"
@@ -5437,13 +5892,7 @@ nivel de confidencialidad, integridad y disponibilidad del sitio analizado.<o:p>
 
 </div>
 
-<div style="mso-element:para-border-div;border:solid #DBE5F1 3.0pt;padding:
-0cm 0cm 0cm 0cm;background:#DBE5F1">
-
-<h2 align=center style="text-align:center;background:#DBE5F1"><span
-style="mso-bookmark:_Toc254176315"><a name="_Toc433285817">Antecedentes</a></span></h2>
-
-</div>
+'.$antecedentes.'
 
 <p class=MsoNoSpacing><span style="mso-bookmark:_Toc254176315"><o:p>&nbsp;</o:p></span></p>
 
@@ -5562,7 +6011,7 @@ numérico que se pondera de acuerdo a la siguiente tabla:</p>
   <p class=MsoNormal align=center style="margin:0cm;margin-bottom:.0001pt;
   text-align:center;line-height:normal;mso-yfti-cnfc:64"><span
   style="mso-ascii-font-family:Calibri;mso-ascii-theme-font:minor-latin;
-  mso-hansi-font-family:Calibri;mso-hansi-theme-font:minor-latin">Numero1<o:p></o:p></span></p>
+  mso-hansi-font-family:Calibri;mso-hansi-theme-font:minor-latin">'.$bajos.'<o:p></o:p></span></p>
   </td>
  </tr>
  <tr style="mso-yfti-irow:1">
@@ -5596,7 +6045,7 @@ numérico que se pondera de acuerdo a la siguiente tabla:</p>
   <p class=MsoNormal align=center style="margin:0cm;margin-bottom:.0001pt;
   text-align:center;line-height:normal;mso-yfti-cnfc:128"><span
   style="mso-ascii-font-family:Calibri;mso-ascii-theme-font:minor-latin;
-  mso-hansi-font-family:Calibri;mso-hansi-theme-font:minor-latin">Numero2<o:p></o:p></span></p>
+  mso-hansi-font-family:Calibri;mso-hansi-theme-font:minor-latin">'.$medios.'<o:p></o:p></span></p>
   </td>
  </tr>
  <tr style="mso-yfti-irow:2;mso-yfti-lastrow:yes">
@@ -5634,29 +6083,24 @@ numérico que se pondera de acuerdo a la siguiente tabla:</p>
   <p class=MsoNormal align=center style="margin:0cm;margin-bottom:.0001pt;
   text-align:center;line-height:normal;mso-yfti-cnfc:64"><span
   style="mso-ascii-font-family:Calibri;mso-ascii-theme-font:minor-latin;
-  mso-hansi-font-family:Calibri;mso-hansi-theme-font:minor-latin">Numero3<o:p></o:p></span></p>
+  mso-hansi-font-family:Calibri;mso-hansi-theme-font:minor-latin">'.$altos.'<o:p></o:p></span></p>
   </td>
  </tr>
 </table>
 
 </div>
 
-<p class=MsoNoSpacing><o:p>&nbsp;</o:p></p>
+<p class=MsoNormal style="margin-top:0cm;margin-right:0cm;margin-bottom:8.0pt;
+margin-left:0cm;line-height:120%"><span Times New
+";mso-fareast-theme-font:minor-fareast;mso-hansi-font-family: "Times New "; ">Los
+hallazgos se muestran en la siguiente tabla junto con las recomendaciones
+asociadas a cada elemento.<span style="font-size:12.0pt;line-height:120%;
+font-family:"Times New Roman",serif;mso-fareast-language:ES-MX;mso-bidi-language:
+AR-SA"><br clear=all style="mso-special-character:line-break;page-break-before:
+always">
+</span><o:p></o:p></p>
 
-<p class=MsoNoSpacing style="text-align:justify">Los hallazgos se muestran en
-la siguiente tabla junto con las recomendaciones asociadas a cada elemento.</p>
-
-<span style="font-size:11.0pt;mso-bidi-font-size:10.0pt;font-family:"Calibri",sans-serif;
-mso-fareast-font-family:"Times New Roman";mso-fareast-theme-font:minor-fareast;
-mso-bidi-font-family:"Times New Roman";mso-ansi-language:ES-MX;mso-fareast-language:
-EN-US;mso-bidi-language:EN-US"><br clear=all style="mso-special-character:line-break;
-page-break-before:always">
 </span>
-
-<p class=MsoNormal style="margin:0cm;margin-bottom:.0001pt;line-height:normal"><a
-name="_Toc433285820"><span style="mso-bidi-font-size:11.0pt;mso-fareast-font-family:
-"Times New Roman";mso-fareast-theme-font:minor-fareast;text-transform:uppercase;
-letter-spacing:.75pt"><o:p>&nbsp;</o:p></span></a></p>
 
 <div style="mso-element:para-border-div;border:solid #DBE5F1 3.0pt;padding:
 0cm 0cm 0cm 0cm;background:#DBE5F1">
@@ -6078,4 +6522,112 @@ style="font-family:"Verdana",sans-serif"><o:p>&nbsp;</o:p></span></p>
 ';	
 	
 	return $html;
+}
+
+function Generar_query_solicitud($rev){
+	  $query = 'SELECT s.id_solicitud, uw.url_link, s.fecha_ini, s.fecha_fin FROM solicitud s, sitio_web sitw, url_web uw where s.id_sitweb = sitw.id_sitweb and sitw.id_sitweb = uw.id_sitweb and num_rev ='.$rev.';';
+	  $solicitud = db_query($query);
+	  db_set_active('default');
+  
+	  $res = array();
+	  
+      foreach ($solicitud as $valor) {
+	    array_push($res,get_object_vars($valor));
+  	  }	
+   	  
+	  $array = array();
+	  $array['raws'] =array();
+	  $array['headers'] =array( 'ID'=>'ID','URL_Sitio'=>'URL_Sitio','Fecha_Inicio'=>'Fecha_Inicio','Fecha_Fin'=>"Fecha_Fin",'Descargar'=>"Descargar",'Terminar'=>"Terminar");
+	  
+	  foreach ($res as $valor) {
+
+	  	$array_tmp = array();
+		  	$array_tmp["ID"] 				= $valor['id_solicitud'];
+			$array_tmp["URL_Sitio"] 		= $valor['url_link'];
+			$array_tmp["Fecha_Inicio"]	 	= $valor['fecha_ini'];	
+			$array_tmp["Fecha_Fin"] 		= $valor['fecha_fin'];
+			$array_tmp["Descargar"]			= '<a href="download/?idSol='.$valor['id_solicitud'].'">Descargar</a>';
+			$array_tmp["Terminar"]			= '<a href="terminar/?idSol='.$valor['id_solicitud'].'">Terminar</a>';
+			
+	    array_push($array['raws'],$array_tmp);
+	  }
+	  return $array;		
+	
+}
+
+function Generar_query_hallazgo(){
+	
+	$type = "hallazgo"; 
+	$nodes = node_load_multiple(array(), array('type' => $type)); 
+		
+	  $array = array();
+	  $array['raws'] =array();
+	  $array['headers'] =array( 'NID'=>'NID','Titulo'=>'Titulo','Descripcion'=>'Descripcion','Nivel'=>'Nivel','Tipo Objetivo'=>'Tipo Objetivo');
+	  
+	  foreach($nodes as $hallazgo){
+	  	
+	  	$nid = $hallazgo->nid;
+	  	$descripcion = generar_extraer($nid, 'field_descripcion_hallazgo','safe_value');
+		$nivel = generar_extraer($nid, 'field_nivel','value');
+		$tipo  = db_select ('node','a');
+		$tipo ->join('field_data_field_objetivo_id','b','a.nid = b.field_objetivo_id_target_id');
+		$tipo = $tipo 
+				->fields('a',array('title'))
+				->condition('b.entity_id',$nid,'=')
+				->execute()
+				->fetchField();
+			  
+	  	$array_tmp= array();
+			$array_tmp["NID"] 			= $hallazgo->nid;
+		  	$array_tmp["Titulo"] 		= $hallazgo->title;
+			$array_tmp["Descripcion"]	= $descripcion;
+			if($nivel >= 0 && $nivel <= 2.9 ){
+			$nivel = 'Bajo - '.$nivel;
+			}
+			if($nivel >= 3.0 && $nivel <= 6.9 ){
+			$nivel = 'Medio - '.$nivel;
+			}
+			if($nivel >= 7.0){
+			$nivel = 'Alto - '.$nivel;
+			}
+			$array_tmp["Nivel"]	 		= $nivel;
+			$array_tmp["Tipo Objetivo"]	= $tipo;
+	    array_push($array['raws'],$array_tmp);
+	  }
+	  return $array;		
+	
+}
+
+function Generar_query_herramienta(){
+	
+	$type = "herramienta"; 
+	$nodes = node_load_multiple(array(), array('type' => $type)); 
+	
+	  $array = array();
+	  $array['raws'] =array();
+	  $array['headers'] =array( 'NID'=>'NID','Herramienta'=>'Herramienta');
+	  
+	  foreach($nodes as $herramienta){
+	  	
+	  	$nid = $herramienta->nid;
+	  	$array_tmp= array();
+			$array_tmp["NID"] 				= $herramienta->nid;
+		  	$array_tmp["Herramienta"] 		= $herramienta->title;
+
+	    array_push($array['raws'],$array_tmp);
+	  }
+	  
+	  return $array;		
+	
+}
+
+
+
+function generar_extraer($nid,$campo,$var){
+	$nodo = entity_load_single('node',$nid);
+  	$nodo2 = $nodo->$campo;
+  	$nodo3 = $nodo2['und'];
+  	$nodo4 = $nodo3[0];	
+	$cadena = $nodo4["$var"];
+	return $cadena;
 }
