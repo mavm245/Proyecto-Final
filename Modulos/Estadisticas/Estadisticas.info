@@ -1,0 +1,5 @@
+;$Id$
+name = Listado de estadisticas.
+description = Listado de las estadisticas mas importantes de las revisiones.
+package = A PROYECTO MODULES
+core = 7.x

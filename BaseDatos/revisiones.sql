@@ -149,6 +149,7 @@ CREATE TABLE IF NOT EXISTS revision(
 	id_revision serial primary key,
 	id_solicitud integer,
 	nid_auditor integer,
+	estado_rev smallint DEFAULT 1,
 	FOREIGN KEY (id_solicitud) REFERENCES solicitud(id_solicitud),
 	FOREIGN KEY (nid_auditor) REFERENCES node(nid)
 );
