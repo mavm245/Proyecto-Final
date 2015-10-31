@@ -15,7 +15,7 @@ function Lista_menu() {
     'weight' => 9,
     'menu_name' => 'main-menu',
     'options' => array('attributes' => array('class' => 'Lista_main')),
-);
+	);
   
    $items['Lista/todas'] = array(
     'title' => 'Todas las solicitudes.',    
@@ -24,7 +24,12 @@ function Lista_menu() {
     'access arguments' => array('Lista/todas'),
   );
 
-  
+  $items['Lista/todas_vis'] = array(
+    'title' => 'Todas las solicitudes visitantes.',    
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('Lista_solicitudesvis_form'),
+    'access arguments' => array('Lista/todas_vis'),
+  );
   return $items;
 }
 
@@ -38,12 +43,18 @@ function Lista_permission() {
       'title' => t('Permisos para visualizar todas'),
       'description' => t('Seleccion de usuarios que pueden tener acceso.'),
     ),
+  
+  'Lista/todas_vis' => array(
+      'title' => t('Permisos para visualizar todas visitante'),
+      'description' => t('Seleccion de usuarios que pueden tener acceso a la lista para visitantes'),
+    ),
   );
 }
 
 function Lista_main(){
 			  return t('<ul style="text-align: justify;">
 		  		<li>'.l( t("Listado de todas las solicitudes."),'Lista/todas').'</li>
+		  		<li>'.l( t("Listado de solicitudes para visitantes"),'Lista/todas_vis').'</li>
 		    	</ul>');		  
 }
 
@@ -72,16 +83,42 @@ function Lista_solicitudes_form($form, $form_state){
     '#multiple' => FALSE,
   	);
 	
-	$form['submit_gen'] = array(
-      '#value' => 'Generar documento',
-      '#type' => 'submit',
-      '#submit' => array('Lista_generar'),
-    );
-	
 	$form['submit_del'] = array(
       '#value' => 'Borrar Solicitud',
       '#type' => 'submit',
       '#submit' => array('Solicitud_borrar'),
+    );
+  return $form;	
+}
+
+
+function Lista_solicitudesvis_form($form, $form_state){
+	
+	$res = Lista_query_solicitud();
+	$headers=$res['headers'];
+	$raws=$res['raws'];
+ 	$raws2=array();
+	foreach ($raws as $raw) {
+		$raws2[$raw['ID']]=$raw;
+	}
+    $leyenda = Lista_main();
+    		    
+    $form['etapa'] = array(
+      '#type' => 'item',
+      '#title' => $leyenda,
+    );
+	 $form['table'] = array(
+    '#type' => 'tableselect',
+    '#header' => $headers,
+    '#options' => $raws2,
+    '#empty' => t('No existen solicitudes'),
+    '#multiple' => FALSE,
+  	);
+	
+	$form['submit'] = array(
+      '#value' => 'Ver solicitud',
+      '#type' => 'submit',
+      '#submit' => array('ver_solicitud'),
     );
   return $form;	
 }
