@@ -342,10 +342,16 @@ function Generar_tercera_form($form, $form_state){
     '#multiple' => TRUE,
   	);
 
-	$form['submit'] = array(
+	$form['submit1'] = array(
+      '#value' => 'Almacenar',
+      '#type' => 'submit',
+      '#submit' => array('almacenar_generar_tercera'),
+    );
+	
+	$form['submit2'] = array(
       '#value' => 'Actualizar',
       '#type' => 'submit',
-      '#submit' => array('actualizar_generar'),
+      '#submit' => array('actualizar_generar_tercera'),
     );
   return $form;	
 	
@@ -465,7 +471,8 @@ function almacenar_generar_segunda($form, &$form_submit) {
       ))->execute();
       }
 	  }
-      drupal_set_message(t('Datos Almacenados correctamente'));
+	  drupal_set_message(t('Datos Almacenados correctamente para la solicitud @var', array('@var' => $solicitud)), 'butterflies'); 
+      drupal_set_message(t());
       //
     }
     catch (Exception $e) {
@@ -476,6 +483,70 @@ function almacenar_generar_segunda($form, &$form_submit) {
 	
 }
 
+function almacenar_generar_tercera($form, &$form_submit) {
+	$values = $form_submit['values'];
+	$solicitud = strip_tags($form_submit['values']['solicitud']);
+	$auditor = strip_tags($form_submit['values']['auditor']);
+	$hallazgos = $form_submit['values']['hallazgo'];
+	$herramientas = $form_submit['values']['herramienta'];
+	print_r($hallazgos);
+	
+	$rev = db_select ('revision','s')
+		 ->fields('s',array('estado_rev'))
+		 ->condition('s.id_solicitud',$solicitud,'=')
+		 ->condition('s.estado_rev','3','=')
+		 ->execute()
+		 ->fetchField();
+	
+	if(!empty($rev)){
+		form_set_error('Solicitud',t('Ya hay revision almacenada para esa solicitud, solo se puede actualizar.'));
+	}
+	else{
+	$transaccion = db_transaction();
+  	try {
+      $revision = db_insert('revision')->fields(array(
+        'id_solicitud' => $solicitud,
+		'nid_auditor' => $auditor,
+		'estado_rev' => 3,
+      ))->execute();
+	  
+	  $rev1=db_select('revision','t')
+  			->fields('t') 
+			->orderBy('id_revision','DESC')
+			->execute()
+			->fetchAssoc();
+	 	$rev = $rev1['id_revision'];
+	  $_SESSION['revision'] = $rev;
+	  $_SESSION['solicitud'] = $solicitud;
+
+	  foreach($hallazgos as $hall){		
+		if($hall != 0){
+	  	$hall_rev = db_insert('hall_rev')->fields(array(
+        'id_revision' => $rev,
+		'nid_hallazgo' => $hall,
+      ))->execute();}
+	  }
+	  
+	 
+	  foreach($herramientas as $herr){
+	  	if($herr != 0){		
+	  	$rev_herr = db_insert('rev_herr')->fields(array(
+        'id_revision' => $rev,
+		'nid_herramienta' => $herr,
+      ))->execute();
+      }
+	  }
+	  drupal_set_message(t('Datos Almacenados correctamente para la solicitud @var', array('@var' => $solicitud)), 'butterflies'); 
+      drupal_set_message(t());
+      //
+    }
+    catch (Exception $e) {
+      $transaccion->rollback();	
+      drupal_set_message(t('Hubo un problema. Por favor intente más tarde.'),'error');
+    }
+    }
+	
+}
 
 function actualizar_generar($form, &$form_submit) {
 	$values = $form_submit['values'];
@@ -602,15 +673,77 @@ function actualizar_generar_segunda($form, &$form_submit) {
     }
 }
 
+function actualizar_generar_tercera($form, &$form_submit) {
+	$values = $form_submit['values'];
+	$solicitud = strip_tags($form_submit['values']['solicitud']);
+	$auditor = strip_tags($form_submit['values']['auditor']);
+	$hallazgos = $form_submit['values']['hallazgo'];
+	$herramientas = $form_submit['values']['herramienta'];
+	
+		 $rev = db_select ('revision','s')
+		 ->fields('s',array('id_revision'))
+		 ->condition('s.id_solicitud',$solicitud,'=')
+		 ->condition('s.estado_rev','3','=')
+		 ->execute()
+		 ->fetchField();
+	$revision = $rev;
+	//drupal_set_message(t('Something @var just happened.', array('@var' => $revision)), 'butterflies');
+	if(empty($rev)){
+		form_set_error('solicitud',t('No hay revisiones almacenadas para esa solicitud'));
+	}else{
+	
+	$transaccion = db_transaction();
+  	try {
+
+	  $_SESSION['revision'] = $revision;
+	  $_SESSION['solicitud'] = $solicitud;
+	  
+	  $borrar_hall = db_delete('hall_rev')
+	  			->condition('id_revision',$revision,'=')
+				->execute();
+	  $borrar_herr = db_delete('rev_herr')
+	  			->condition('id_revision',$revision,'=')
+				->execute();
+	  
+	  $revis = db_update('revision')->fields(array(
+		'nid_auditor' => $auditor,
+      ))
+      ->condition('id_solicitud',$solicitud,'=')
+      ->execute();
+	  
+	  foreach($hallazgos as $hall){		
+		if($hall != 0){
+	  	$hall_rev = db_insert('hall_rev')->fields(array(
+        'id_revision' => $revision,
+		'nid_hallazgo' => $hall,
+      ))->execute();}
+	  }
+	  foreach($herramientas as $herr){
+	  	if($herr != 0){		
+	  	$rev_herr = db_insert('rev_herr')->fields(array(
+        'id_revision' => $revision,
+		'nid_herramienta' => $herr,
+      ))->execute();
+      }
+	  }
+      drupal_set_message(t('Datos Actualizados correctamente'));
+      
+    }
+    catch (Exception $e) {
+      $transaccion->rollback();	
+      drupal_set_message(t('Hubo un problema. Por favor intente más tarde.'),'error');
+    }
+    }
+}
 
 function revision_word_download(){
 		$idsol=filter_var(strip_tags(isset($_GET['idSol'])?$_GET['idSol']:0),FILTER_SANITIZE_NUMBER_INT);
-		//$idest=filter_var(strip_tags(isset($_GET['idEst'])?$_GET['idEst']:0),FILTER_SANITIZE_NUMBER_INT);
+		$idest=filter_var(strip_tags(isset($_GET['idrev'])?$_GET['idrev']:0),FILTER_SANITIZE_NUMBER_INT);
 		if (!empty($idsol)){
 		$rev = db_select ('revision','s')
 		 ->fields('s',array('id_revision'))
 		 ->condition('s.id_solicitud',$idsol,'=')
-		 //->condition('s.estado_rev',$idest,'=')
+		 ->condition('s.estado_rev',$idest,'=')
 		 ->execute()
 		 ->fetchField();
 		if (!empty($rev)){
@@ -618,13 +751,28 @@ function revision_word_download(){
 		$_SESSION['solicitud'] = $idsol;
 		$res = genera_html();
   		revision_generar_doc($res,"Revision de seguridad");
+		drupal_set_message(t('Descarga completada exitosamente'));	
 		}else{
+		
+		if($idest==1){
+		drupal_set_message(t('La revision no tiene datos almacenados'),'error');
 		drupal_goto('Generar/Revision');
-		drupal_set_message(t('Error en la matrix'),'error');	
+		}
+		
+		if($idest==2){
+			drupal_set_message(t('La revision no tiene datos almacenados'),'error');
+		 drupal_goto('Generar/Primera-seguimiento');
+		
+		}	
+		if($idest==3){
+		 drupal_goto('Generar/Segunda-seguimiento');
+		drupal_set_message(t('La revision no tiene datos almacenados'),'error');
+		}	
+		
 		}
 		}else{
-		drupal_set_message(t('Error en la matrix'),'error');	
 			
+		drupal_set_message(t('Error en la matrix'),'error');	
 		}
  return;
 	
@@ -632,7 +780,7 @@ function revision_word_download(){
 
 function terminar_revision($form, &$form_submit){
 		$idsol=filter_var(strip_tags(isset($_GET['idSol'])?$_GET['idSol']:0),FILTER_SANITIZE_NUMBER_INT);
-		//$idest=filter_var(strip_tags(isset($_GET['idEst'])?$_GET['idEst']:0),FILTER_SANITIZE_NUMBER_INT);	
+		$idest=filter_var(strip_tags(isset($_GET['idrev'])?$_GET['idrev']:0),FILTER_SANITIZE_NUMBER_INT);	
 		$info9 = "<div class='apartado'><u>Revision de solicitd con id $idsol terminada </u></div>";  		
 
 		if (!empty($idsol)){
@@ -640,12 +788,21 @@ function terminar_revision($form, &$form_submit){
 		$rev = db_select ('revision','s')
 		 ->fields('s',array('id_revision'))
 		 ->condition('s.id_solicitud',$idsol,'=')
-		// ->condition('s.estado_rev',$idest,'=')
+		 ->condition('s.estado_rev',$idest,'=')
 		 ->execute()
 		 ->fetchField();
 		if(empty($rev)){
-		form_set_error('Solicitud',t('No hay revisiones para esta solicitud, no se puede Finalizar'));
-		drupal_goto('Generar');
+			
+		form_set_error('Solicitud',t('No hay revisiones para esta solicitud, no se puede Finalizar'));	
+			if($idest==1){
+		drupal_goto('Generar/Revision');
+		}
+		if($idest==2){
+		 drupal_goto('Generar/Primera-seguimiento');
+		}	
+		if($idest==3){
+		 drupal_goto('Generar/Segunda-seguimiento');
+		}	
 		}
 		else{
 		try{
@@ -655,6 +812,7 @@ function terminar_revision($form, &$form_submit){
       ))
       ->condition('id_solicitud',$idsol,'=')
       ->execute();
+	  drupal_set_message(t('Revision inicial finalizada correctamente'));
 		}
 		
 		if($idest==2){
@@ -663,16 +821,17 @@ function terminar_revision($form, &$form_submit){
       ))
       ->condition('id_solicitud',$idsol,'=')
       ->execute();
+	  drupal_set_message(t('Revision de seguimiento finalizada correctamente'));
 		}
 		
 		if($idest==3){
 		 $revis = db_update('solicitud')->fields(array(
-		'num_rev' => 3,
+		'num_rev' => 4,
       ))
       ->condition('id_solicitud',$idsol,'=')
       ->execute();
+	  drupal_set_message(t('Segunda de revision de seguimiento finalizada correctamente'));
 		}
-		drupal_set_message(t('Revision inicial finalizada correctamente'));
 		unset ($_SESSION['revision']);
 		unset ($_SESSION['solicitud']);	
 		}
@@ -6089,7 +6248,7 @@ numérico que se pondera de acuerdo a la siguiente tabla:</p>
 </table>
 
 </div>
-
+<p class=MsoNoSpacing><o:p>&nbsp;</o:p></p>
 <p class=MsoNormal style="margin-top:0cm;margin-right:0cm;margin-bottom:8.0pt;
 margin-left:0cm;line-height:120%"><span Times New
 ";mso-fareast-theme-font:minor-fareast;mso-hansi-font-family: "Times New "; ">Los
@@ -6525,7 +6684,7 @@ style="font-family:"Verdana",sans-serif"><o:p>&nbsp;</o:p></span></p>
 }
 
 function Generar_query_solicitud($rev){
-	  $query = 'SELECT s.id_solicitud, uw.url_link, s.fecha_ini, s.fecha_fin FROM solicitud s, sitio_web sitw, url_web uw where s.id_sitweb = sitw.id_sitweb and sitw.id_sitweb = uw.id_sitweb and num_rev ='.$rev.';';
+	  $query = 'SELECT s.id_solicitud, uw.url_link, s.fecha_ini, s.fecha_fin, s.num_rev FROM solicitud s, sitio_web sitw, url_web uw where s.id_sitweb = sitw.id_sitweb and sitw.id_sitweb = uw.id_sitweb and num_rev ='.$rev.';';
 	  $solicitud = db_query($query);
 	  db_set_active('default');
   
@@ -6546,8 +6705,8 @@ function Generar_query_solicitud($rev){
 			$array_tmp["URL_Sitio"] 		= $valor['url_link'];
 			$array_tmp["Fecha_Inicio"]	 	= $valor['fecha_ini'];	
 			$array_tmp["Fecha_Fin"] 		= $valor['fecha_fin'];
-			$array_tmp["Descargar"]			= '<a href="download/?idSol='.$valor['id_solicitud'].'">Descargar</a>';
-			$array_tmp["Terminar"]			= '<a href="terminar/?idSol='.$valor['id_solicitud'].'">Terminar</a>';
+			$array_tmp["Descargar"]			= '<a href="download/?idSol='.$valor['id_solicitud'].'&idrev='.$valor['num_rev'].'">Descargar</a>';
+			$array_tmp["Terminar"]			= '<a href="terminar/?idSol='.$valor['id_solicitud'].'&idrev='.$valor['num_rev'].'">Terminar</a>';
 			
 	    array_push($array['raws'],$array_tmp);
 	  }
