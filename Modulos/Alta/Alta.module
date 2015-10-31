@@ -8,27 +8,44 @@
 function alta_menu() {
   $items['Alta'] = array(
     'title' => 'Alta de nueva revisión',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('alta_form'),
+    'page callback' => 'alta_main',
+    'page arguments' => array('Alta/'),
     'access callback' => TRUE,
     'weight' => 9,
     'menu_name' => 'main-menu',
-    'options' => array('attributes' => array('class' => 'menu_alta')),
+    'options' => array('attributes' => array('class' => 'alta_main')),
     );
+	
+	$items['Alta/revision'] = array(
+    'title' => 'Formulario de alta',    
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('alta_form'),
+    'access arguments' => array('Alta'),
+  );
   return $items;
 }
 
 function alta_permission() {
   return array(
-    'Alta/' => array(
-      'title' => t('Permisos para ingresar al formulario de alta de revisiones'),
-      'description' => t('Seleccion de usuarios que pueden tener acceso.'),
-    ),
-  );
+    'Alta' => array(
+    'title' => t('Permisos para ingresar al formulario de alta de revisiones'),
+    'description' => t('Seleccion de usuarios que pueden tener acceso.'),
+    		),
+
+	 'Alta/revision' => array(
+    'title' => t('Permisos para ingresar al formulario de alta de revisiones'),
+    'description' => t('Seleccion de usuarios que pueden tener acceso.'),
+    		),
+  		);
+}
+
+function alta_main(){
+			  return t('<ul style="text-align: justify;">
+		  		<li>'.l( t("Formulario de alta"),'Alta/revision').'</li>
+		    	</ul>');		  
 }
 
 function alta_form($form, &$form_submit) {
-	
   if (empty($form_submit['storage'])) {
     $form_submit['storage'] = array(
       'step' => 'alta_rev_form',
@@ -370,7 +387,7 @@ function alta_rev_form($form,&$form_submit) {
   );
   
     $form['ip_bd'] = array(
-    '#title' => t('Direccion(es) IP:'),
+    '#title' => t('Direccion IP:'),
     '#type' => 'textfield',
     '#required' => FALSE,
     '#default_value' => $ip_bd,
@@ -378,7 +395,7 @@ function alta_rev_form($form,&$form_submit) {
   );
   
   $form['puer_acc_bd'] = array(
-    '#title' => t('Puerto(s):'),
+    '#title' => t('Puerto:'),
     '#type' => 'textfield',
     '#required' => FALSE,
     '#default_value' => $puer_acc_bd,
@@ -518,7 +535,7 @@ if(!preg_match('/^[a-zA-Z][a-zA-Z0-9_\-]?(\.?[a-zA-Z0-9_\-])+@[a-z0-9-]+(.[a-z0-
 	form_set_error('correo_adm',t('Ingresar un correo de contacto ADMINISTRATIVO válido'));
 }
 
-if(!preg_match('/^(((044|\+[0-9]{1,2})\s?)?[0-9]{5,10}(\s[A-Za-z]+\.?\s[0-9]{1,5})?|([A-Za-z]+\.?\s[0-9]{1,5})?)$/',$tel_adm)){
+if(!preg_match('/^(((044|\+[0-9]{1,2})\s?)?[0-9]{5,10}(\s[A-Za-z]+\.?\s[0-9]{1,5})?|([A-Za-z]+[\:|\.]?\s[0-9]{1,5})?)$/',$tel_adm)){
 	form_set_error('tel_adm',t('Ingresar un teléfono de contacto administrativo válido'));
 }
 
@@ -530,7 +547,7 @@ if(!preg_match('/^[a-zA-Z][a-zA-Z0-9_\-]?(\.?[a-zA-Z0-9_\-])+@[a-z0-9-]+(.[a-z0-
 	form_set_error('correo_tec',t('Ingresar un correo de contacto técnico válido'));
 }
 
-if(!preg_match('/^(((044|\+[0-9]{1,2})\s?)?[0-9]{5,10}(\s[A-Za-z]+\.?\s[0-9]{1,5})?|([A-Za-z]+\.?\s[0-9]{1,5})?)$/',$tel_tec)){
+if(!preg_match('/^(((044|\+[0-9]{1,2})\s?)?[0-9]{5,10}(\s[A-Za-z]+\.?\s[0-9]{1,5})?|([A-Za-z]+[\:|\.]?\s[0-9]{1,5})?)$/',$tel_tec)){
 	form_set_error('tel_tec',t('Ingresar un teléfono de contacto técnico válido'));
 }
 /*
@@ -568,6 +585,7 @@ if(!preg_match('/^(([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}([1-9]|[1-9]\d|1\
 }*/
 
 foreach ($puer as $valor) {
+	$valor = str_replace(' ', '', $valor);
 if(!preg_match('/^(\b([1-9]|\d\d|\d\d\d|\d\d\d\d|[1-5]\d\d\d\d|6[0-4]\d\d\d|65[0-4]\d\d|655[0-2]\d|6553[0-4])\b)$/',$valor)){
 	form_set_error('puer_acc_web',t('Ingresar un puerto del servicio web válido'));
 }
@@ -812,6 +830,7 @@ function alta_rev_enviar($form, &$form_submit) {
       ))->execute(); 
 	  
 	drupal_set_message(t('Datos Almacenados correctamente'));
+	drupal_goto('Lista/todas');
     }
     catch (Exception $e) {
       $transaccion->rollback();	
