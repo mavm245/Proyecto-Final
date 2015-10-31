@@ -1,6 +1,6 @@
 <?php
 /*
-*Form Listado de estadisticas
+*Form Estadisticasdo de revisión
 *@author: mvasquez & varteaga
 *@date: 29/09/2015
 */
@@ -12,143 +12,275 @@ function Estadisticas_menu() {
     'page callback' => 'Estadisticas_main',
     'access arguments' => array('Estadisticas/'),
     'access callback' => TRUE,
-    'weight' => 10,
+    'weight' => 9,
     'menu_name' => 'main-menu',
     'options' => array('attributes' => array('class' => 'Estadisticas_main')),
 );
   
+   $items['Estadisticas/todas'] = array(
+    'title' => 'Todas las solicitudes.',    
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('Estadisticas_solicitudes_form'),
+    'access arguments' => array('Estadisticas/todas'),
+  );
+
+  
   return $items;
 }
 
-function Estadistica_permission() {
+function Estadisticas_permission() {
   return array(
     'Estadisticas/' => array(
-      'title' => t('Permisos para visualizar las estadisticas de revisiones'),
+      'title' => t('Permisos para visualizar las listas de revisiones'),
+      'description' => t('Seleccion de usuarios que pueden tener acceso.'),
+    ),
+    'Estadisticas/todas' => array(
+      'title' => t('Permisos para visualizar todas'),
       'description' => t('Seleccion de usuarios que pueden tener acceso.'),
     ),
   );
 }
 
-
 function Estadisticas_main(){
-
-  if (empty($form_submit['storage'])) {
-    $form_submit['storage'] = array(
-      'step' => 'Generar_encuestas_form',
-    );
-  }
-  $function = $form_submit['storage']['step'];
-  $form = $function($form, $form_submit);
-  return $form;
+			  return t('<ul style="text-align: justify;">
+		  		<li>'.l( t("Estadisticas de todas las solicitudes."),'Estadisticas/todas').'</li>
+		    	</ul>');		  
 }
 
-function Generar_encuestas_form($form, $form_state){
+
+
+function Estadisticas_solicitudes_form($form, $form_state){
 	
-	$res = Generar_query_encuesta();
-	$headers=$res['headers'];
+	//form para Numero de Revisiones por auditor:
+	$res = Estadisticas_query_solicitud();
+	$headers1=$res['headers'];
 	$raws=$res['raws'];
  	$raws2=array();
 	foreach ($raws as $raw) {
 		$raws2[$raw['ID']]=$raw;
 	}
-
-	 $form['solicitud'] = array(
-    '#type' => 'tableselect',
-    '#header' => $headers,
-    '#options' => $raws2,
-    '#required' => TRUE,
-    '#empty' => t('No existen solicitudes'),
-    '#multiple' => FALSE,
-  	);
-	
-	$auditor=db_select('node','t')
-  			->fields('t',array('nid','title'))
-			->orderBy('title','ASC')
-			->condition('type','auditor','=')
-			->execute()
-			->fetchAllKeyed();
+    $leyenda = 'Numero de revisiones por auditor.';
     		    
+    $form['etapa'] = array(
+      '#type' => 'item',
+      '#title' => $leyenda,
+    );
+	 $form['table'] = array(
+    '#type' => 'tableselect',
+    '#header' => $headers1,
+    '#options' => $raws2,
+    '#empty' => t('No existen solicitudes'),
+  	);
 
-	 $form['auditor'] = array(
-    '#title' => t('Auditor que realizará la revisión:'),
-    '#type' => 'select',
-    '#options' => $auditor,
-    '#required' => TRUE,
-    '#empty_option' => '-Seleccione-',
-  );
-  
-  /*
-
-  $res = Generar_query_hallazgo();
-	$headers1=$res['headers'];
+	//form para Hallazgos por revisiones:
+	$res = Estadisticas_query_hallxrev();
+	$headers2=$res['headers'];
 	$raws=$res['raws'];
  	$raws3=array();
 	foreach ($raws as $raw) {
-		$raws3[$raw['NID']]=$raw;
+		$raws3[$raw['FID']]=$raw;
 	}
+    $leyenda = 'Que hallazgos tiene cada sitio.';
     		    
-	 $form['hallazgo'] = array(
-	 '#title' => t('Hallazgos que se encontraron en la revisión:'),
+    $form['etapa2'] = array(
+      '#type' => 'item',
+      '#title' => $leyenda,
+    );
+	 $form['table2'] = array(
     '#type' => 'tableselect',
-    '#header' => $headers1,
+    '#header' => $headers2,
     '#options' => $raws3,
-    '#required' => TRUE,
-    '#empty' => t('No existen hallazgos'),
-    '#multiple' => TRUE,
+    '#empty' => t('No existen revisiones o hallazgos.'),
   	);
-	
-	$res = Generar_query_herramienta();
-	$headers2=$res['headers'];
+
+	//form para Numero de Hallazgos totales:
+	$res = Estadisticas_query_hall_tot();
+	$headers3=$res['headers'];
 	$raws=$res['raws'];
  	$raws4=array();
 	foreach ($raws as $raw) {
 		$raws4[$raw['NID']]=$raw;
 	}
+    $leyenda = 'Numero total de hallazgos por todas las revisiones.';
     		    
-	 $form['herramienta'] = array(
-	'#title' => t('Herramientas que se usaron en la revisión:'),
+    $form['etapa3'] = array(
+      '#type' => 'item',
+      '#title' => $leyenda,
+    );
+	 $form['table3'] = array(
     '#type' => 'tableselect',
-    '#header' => $headers2,
+    '#header' => $headers3,
     '#options' => $raws4,
-    '#required' => TRUE,
-    '#empty' => t('No existen Herramientas'),
-    '#multiple' => TRUE,
+    '#empty' => t('No existen hallazgos.'),
   	);
 
-	$form['submit'] = array(
-      '#value' => 'Generar documento',
-      '#type' => 'submit',
-      '#submit' => array('enviar_generar'),
+	//form para Numero de Herramientas totales:
+	$res = Estadisticas_query_herr_tot();
+	$headers4=$res['headers'];
+	$raws=$res['raws'];
+ 	$raws5=array();
+	foreach ($raws as $raw) {
+		$raws5[$raw['NID']]=$raw;
+	}
+    $leyenda = 'Top de herramientas mas utilizadas en revisiones.';
+    		    
+    $form['etapa4'] = array(
+      '#type' => 'item',
+      '#title' => $leyenda,
     );
+	 $form['table4'] = array(
+    '#type' => 'tableselect',
+    '#header' => $headers4,
+    '#options' => $raws5,
+    '#empty' => t('No existen herramientas.'),
+  	);
 
-	*/
+	//form para Hallazgos con mayor repetición por año:
+	$res = Estadisticas_query_hallxyear();
+	$headers4=$res['headers'];
+	$raws=$res['raws'];
+ 	$raws5=array();
+	foreach ($raws as $raw) {
+		$raws5[$raw['NID']]=$raw;
+	}
+    $leyenda = 'Top de hallazgos por año.';
+    		    
+    $form['etapa4'] = array(
+      '#type' => 'item',
+      '#title' => $leyenda,
+    );
+	 $form['table4'] = array(
+    '#type' => 'tableselect',
+    '#header' => $headers4,
+    '#options' => $raws5,
+    '#empty' => t('No existen hallazgos.'),
+  	);
 
   return $form;	
+
 }
 
-function Generar_query_encuesta(){
+function Estadisticas_query_solicitud(){
 	
-	  $solicitud = db_query('SELECT s.id_solicitud, uw.url_link, s.fecha_ini, s.fecha_fin FROM solicitud s, sitio_web sitw, url_web uw where s.id_sitweb = sitw.id_sitweb and sitw.id_sitweb = uw.id_sitweb;');
+	  $registro  = db_query('SELECT nid, title auditor, count(sitio_nombre) auditorias from node,revision,solicitud where type=\'auditor\' and nid_auditor=nid and solicitud.id_solicitud=revision.id_solicitud GROUP BY nid;');
 	  db_set_active('default');
   
 	  $res = array();
 	  
-      foreach ($solicitud as $valor) {
+      foreach ($registro as $valor) {
 	    array_push($res,get_object_vars($valor));
   	  }	
    	  
 	  $array = array();
 	  $array['raws'] =array();
-	  $array['headers'] =array( 'ID'=>'ID','URL_Sitio'=>'URL_Sitio','Fecha_Inicio'=>'Fecha_Inicio','Fecha_Fin'=>"Fecha_Fin");
+	  $array['headers'] =array( 'ID'=>'ID','Auditor'=>'Auditor','Auditorias'=>'Auditorias');
 	  
 	  foreach ($res as $valor) {  
 	  	$array_tmp = array();
-		  	$array_tmp["ID"] 				= $valor['id_solicitud'];
-			$array_tmp["URL_Sitio"] 		= $valor['url_link'];
-			$array_tmp["Fecha_Inicio"]	 	= $valor['fecha_ini'];	
-			$array_tmp["Fecha_Fin"] 		= $valor['fecha_fin'];
+		  	$array_tmp["ID"] 				= $valor['nid'];
+			$array_tmp["Auditor"] 			= $valor['auditor'];
+			$array_tmp["Auditorias"]	 	= $valor['auditorias'];	
 	    array_push($array['raws'],$array_tmp);
 	  }
 	  return $array;		
+}
+
+function Estadisticas_query_hallxrev(){
 	
+	  $registro  = db_query('SELECT r.id_revision || \'\' || nid_hallazgo FID, sitio_nombre, title hallazgo FROM node n, field_data_field_descripcion_hallazgo dh, hall_rev hr, solicitud s, revision r WHERE entity_id=nid AND nid_hallazgo=nid AND s.id_solicitud=r.id_solicitud AND r.id_revision=hr.id_revision ORDER BY sitio_nombre;');
+	  db_set_active('default');
+  
+	  $res = array();
+	  
+      foreach ($registro as $valor) {
+	    array_push($res,get_object_vars($valor));
+  	  }	
+   	  
+	  $array = array();
+	  $array['raws'] =array();
+	  $array['headers'] =array( 'sitio_nombre'=>'sitio_nombre','hallazgo'=>'hallazgo');
+	  
+	  foreach ($res as $valor) {  
+	  	$array_tmp = array();
+		  	$array_tmp["FID"] 				= $valor['fid'];
+		  	$array_tmp["sitio_nombre"] 		= $valor['sitio_nombre'];
+			$array_tmp["hallazgo"] 			= $valor['hallazgo'];
+	    array_push($array['raws'],$array_tmp);
+	  }
+	  return $array;		
+}
+
+function Estadisticas_query_hall_tot(){
+	
+	  $registro  = db_query('SELECT nid, title hallazgo, count(title) num_hallazgos FROM node, hall_rev WHERE type=\'hallazgo\' and nid=nid_hallazgo GROUP BY nid ORDER BY num_hallazgos DESC;');
+	  db_set_active('default');
+  
+	  $res = array();
+	  
+      foreach ($registro as $valor) {
+	    array_push($res,get_object_vars($valor));
+  	  }	
+   	  
+	  $array = array();
+	  $array['raws'] =array();
+	  $array['headers'] =array( 'hallazgo'=>'Hallazgo','num_hallazgos'=>'Total en revisiones');
+	  
+	  foreach ($res as $valor) {  
+	  	$array_tmp = array();
+		  	$array_tmp["NID"] 			= $valor['nid'];
+		  	$array_tmp["hallazgo"] 		= $valor['hallazgo'];
+			$array_tmp["num_hallazgos"]	= $valor['num_hallazgos'];
+	    array_push($array['raws'],$array_tmp);
+	  }
+	  return $array;		
+}
+
+function Estadisticas_query_herr_tot(){
+	
+	  $registro  = db_query('SELECT nid, title herramienta, count(nid) usos FROM node, rev_herr WHERE type=\'herramienta\' AND nid_herramienta=nid GROUP BY nid ORDER BY usos DESC;');
+	  db_set_active('default');
+  
+	  $res = array();
+	  
+      foreach ($registro as $valor) {
+	    array_push($res,get_object_vars($valor));
+  	  }	
+   	  
+	  $array = array();
+	  $array['raws'] =array();
+	  $array['headers'] =array( 'herramienta'=>'herramienta','usos'=>'Total en usos');
+	  
+	  foreach ($res as $valor) {  
+	  	$array_tmp = array();
+		  	$array_tmp["NID"] 			= $valor['nid'];
+		  	$array_tmp["herramienta"] 	= $valor['herramienta'];
+			$array_tmp["usos"]			= $valor['usos'];
+	    array_push($array['raws'],$array_tmp);
+	  }
+	  return $array;		
+}
+
+function Estadisticas_query_hallxyear(){
+	
+	  $registro  = db_query(' SELECT nid, title hallazgo, count(title) num_hallazgos FROM node, hall_rev, solicitud, revision WHERE type=\'hallazgo\' and nid=nid_hallazgo AND fecha_sol >=\'2015-01-01\' AND fecha_sol<=\'2015-12-31\' AND solicitud.id_solicitud=revision.id_solicitud AND hall_rev.id_revision=revision.id_revision GROUP BY nid ORDER BY num_hallazgos DESC;');
+	  db_set_active('default');
+  
+	  $res = array();
+	  
+      foreach ($registro as $valor) {
+	    array_push($res,get_object_vars($valor));
+  	  }	
+   	  
+	  $array = array();
+	  $array['raws'] =array();
+	  $array['headers'] =array( 'hallazgo'=>'hallazgo','num_hallazgos'=>'num_hallazgos');
+	  
+	  foreach ($res as $valor) {  
+	  	$array_tmp = array();
+		  	$array_tmp["NID"] 			= $valor['nid'];
+		  	$array_tmp["hallazgo"] 	= $valor['hallazgo'];
+			$array_tmp["num_hallazgos"]	= $valor['num_hallazgos'];
+	    array_push($array['raws'],$array_tmp);
+	  }
+	  return $array;		
 }
