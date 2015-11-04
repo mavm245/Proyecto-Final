@@ -527,10 +527,14 @@ else{
 }
 
 
-if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ](\.|[a-záéíóúüñ]+\.?)\s?[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ\.]+(\s[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñi\.]+)+$/',$nom_adm)){
-//	if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ\.\s]+$/',$nom_adm)){
-	form_set_error('nom_adm',t('Ingresar un nombre de contacto administrativo válido'));
-}
+if(strlen($nom_adm)>60){
+	form_set_error('$nom_adm',t('Ingrese un nombre de contacto administrativo de menor longitud.'));
+}else{
+	if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ](\.|[a-záéíóúüñ]+\.?)\s?[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ\.]+(\s[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñi\.]+)+$/',$nom_adm)){
+	//if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ\.\s]+$/',$nom_adm)){
+		form_set_error('nom_adm',t('Ingresar un nombre de contacto administrativo válido'));
+		}
+	}
 
 if(!preg_match('/^[a-zA-Z][a-zA-Z0-9_\-]?(\.?[a-zA-Z0-9_\-])+@[a-z0-9-]+(.[a-z0-9-]+)*(.[a-z]{2,4})$/',$correo_adm)){
 	form_set_error('correo_adm',t('Ingresar un correo de contacto ADMINISTRATIVO válido'));
@@ -540,10 +544,14 @@ if(!preg_match('/^(((044|\+[0-9]{1,2})\s?)?[0-9]{5,10}(\s[A-Za-z]+\.?\s[0-9]{1,5
 	form_set_error('tel_adm',t('Ingresar un teléfono de contacto administrativo válido'));
 }
 
-if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ](\.|[a-záéíóúüñ]+\.?)\s?[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ\.]+(\s[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ\.]+)+$/',$nom_tec)){
-//	if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ\.\s]+$/',$nom_tec)){
-	form_set_error('nom_tec',t('Ingresar un nombre de contacto TÉCNICO válido'));
-}
+if(strlen($nom_adm)>60){
+	form_set_error('$nom_adm',t('Ingrese un nombre de contacto administrativo de menor longitud.'));
+}else{
+	if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ](\.|[a-záéíóúüñ]+\.?)\s?[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ\.]+(\s[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ\.]+)+$/',$nom_tec)){
+	//if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ\.\s]+$/',$nom_tec)){
+		form_set_error('nom_tec',t('Ingresar un nombre de contacto TÉCNICO válido'));
+		}
+	}
 
 if(!preg_match('/^[a-zA-Z][a-zA-Z0-9_\-]?(\.?[a-zA-Z0-9_\-])+@[a-z0-9-]+(.[a-z0-9-]+)*(.[a-z]{2,4})$/',$correo_tec)){
 	form_set_error('correo_tec',t('Ingresar un correo de contacto técnico válido'));
