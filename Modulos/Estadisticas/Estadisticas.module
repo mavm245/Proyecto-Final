@@ -110,26 +110,27 @@ function Estadisticas_solicitudes_form($form, $form_state){
       '#title' => $leyenda,
     );
 
-	$sitios=db_select('solicitud','t')
-  			->fields('t',array('id_solicitud','sitio_nombre'))
-			->orderBy('sitio_nombre','ASC')
-			->execute()
-			->fetchAllKeyed();
-    		    
+/*
+	$sitios=db_select('solicitud','t')
+  			->fields('t',array('id_solicitud','sitio_nombre'))
+			->orderBy('sitio_nombre','ASC')
+			->execute()
+			->fetchAllKeyed();
+    		    
 	 $form['sitios'] = array(
-    '#title' => t('Sitio la que se desea ver hallazgos.'),
-    '#type' => 'select',
-    '#options' => $sitios,
-    '#required' => TRUE,
-    '#empty_option' => '-Seleccione-',
+    '#title' => t('Sitio la que se desea ver hallazgos.'),
+    '#type' => 'select',
+    '#options' => $sitios,
+    '#required' => TRUE,
+    '#empty_option' => '-Seleccione-',
   );
 
-	$form['submit_site'] = array(
-      '#value' => 'Generar',
-      '#type' => 'submit',
-      '#submit' => array('alta_rev_enviar'),
+	$form['submit_site'] = array(
+      '#value' => 'Generar',
+      '#type' => 'submit',
+      '#submit' => array('alta_rev_enviar'),
     );	
-
+*/
 	 $form['table2'] = array(
     '#theme' => 'table',
     '#header' => $headers2,
@@ -288,6 +289,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
 	);
 
 */
+/*
 	$format = 'Y-m-d';
 
    $form['fecha_ini'] = array(
@@ -317,7 +319,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
 
 	$fecha_ini=filter_var(strip_tags($form_submit['values']['fecha_ini']),FILTER_SANITIZE_STRING);
 	$fecha_fin=filter_var(strip_tags($form_submit['values']['fecha_fin']),FILTER_SANITIZE_STRING);
-
+*/
 
 	//form para Numero de Revisiones por año:
 	$res = Estadisticas_query_revxyear();
@@ -363,6 +365,50 @@ function Estadisticas_solicitudes_form($form, $form_state){
 	);
 
 
+	//form para Numero de Revisiones por año:
+	$res = Estadisticas_query_auditxsite();
+	$headers7=$res['headers'];
+	$raws=$res['raws'];
+ 	$raws8=array();
+	foreach ($raws as $raw) {
+		$raws8[$raw['id']]=$raw;
+	}
+    $leyenda = 'Revisiones realizadas por cada auditor.';
+    		    
+    $form['etapa7'] = array(
+      '#type' => 'item',
+      '#title' => $leyenda,
+    );
+	 $form['table7'] = array(
+    '#theme' => 'table',
+    '#header' => $headers7,
+    '#rows' => $raws8,
+    '#empty' => t('No existen revisiones.'),
+  	);
+/*
+	//Grafica para el Numero de Revisiones Totales por año:
+	$data = $raws8;
+	$options_line = array(
+	'title' => 'Revisiones realizadas por auditor.',
+	'fields' => array(
+	'solicitudes' => array(
+	'label' => t('Solicitudes'),
+	'enabled' => TRUE,
+	),
+	),
+	'xAxis' => array(
+	'labelField' => 'año',
+	),
+	'data' => $data,
+	'type' => 'line',
+	);
+
+	$form['line'] =  array(
+	'#theme' => 'visualization',
+	'#options' => $options_line,
+	);
+
+*/
   return $form;	
 
 }
@@ -434,14 +480,15 @@ function Estadisticas_query_hallxrev(){
    	  
 	  $array = array();
 	  $array['raws'] =array();
-	  $array['headers'] =array( 'sitio_nombre'=>'sitio_nombre','hallazgo'=>'hallazgo');
-	  
+	  $array['headers'] =array( 'ID'=>'FID','sitio_nombre'=>'sitio_nombre','hallazgo'=>'hallazgo');
+	  $i=0;
 	  foreach ($res as $valor) {  
 	  	$array_tmp = array();
-		  	$array_tmp["FID"] 				= $valor['fid'];
+		  	$array_tmp["FID"] 				= $i;
 		  	$array_tmp["sitio_nombre"] 		= $valor['sitio_nombre'];
 			$array_tmp["hallazgo"] 			= $valor['hallazgo'];
 	    array_push($array['raws'],$array_tmp);
+		$i++;
 	  }
 	  return $array;		
 }
@@ -541,6 +588,35 @@ function Estadisticas_query_revxyear(){
 			$array_tmp["año"]	= $valor['año'];
 		  	$array_tmp["solicitudes"] 	= $valor['solicitudes'];
 	    array_push($array['raws'],$array_tmp);
+	  }
+	  return $array;		
+}
+
+function Estadisticas_query_auditxsite(){
+	
+	  $registro  = db_query('SELECT s.id_solicitud, title auditor, sitio_nombre nombre_sitio, fecha_ini fecha, CASE WHEN estado_rev=1 THEN \'Solicitud\' WHEN estado_rev=2 THEN \'Revision Inicial\' WHEN estado_rev=3 THEN \'Primera Revisión de Seguimiento\' WHEN estado_rev=4 THEN \'Segunda Revisión de Seguimiento\' ELSE \'Revisión Extraordinaria de Seguimiento\' END Estado from node n, solicitud s, revision r WHERE s.id_solicitud=r.id_solicitud AND nid_auditor=nid order by title;');
+	  db_set_active('default');
+  
+	  $res = array();
+	  
+      foreach ($registro as $valor) {
+	    array_push($res,get_object_vars($valor));
+  	  }	
+   	  
+	  $array = array();
+	  $array['raws'] =array();
+	  $array['headers'] =array( 'id'=>'ID','auditor'=>'Auditor Responsable','nombre_sitio'=>'Nombre del sitio','fecha'=>'Fecha','estado'=>'Estado');
+	  $i=0;
+	  
+	  foreach ($res as $valor) {  
+	  	$array_tmp = array();
+		  	$array_tmp["id"] = $i;
+			$array_tmp["auditor"]	= $valor['auditor'];
+			$array_tmp["nombre_sitio"]	= $valor['nombre_sitio'];
+		  	$array_tmp["fecha"] 	= $valor['fecha'];
+			$array_tmp["estado"] 	= $valor['estado'];
+	    	array_push($array['raws'],$array_tmp);
+			$i++;
 	  }
 	  return $array;		
 }

@@ -527,7 +527,8 @@ else{
 }
 
 
-if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ](\.|[a-záéíóúüñ]+\.?)\s?[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ\.]+(\s[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ]+)+$/',$nom_adm)){
+if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ](\.|[a-záéíóúüñ]+\.?)\s?[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ\.]+(\s[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñi\.]+)+$/',$nom_adm)){
+//	if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ\.\s]+$/',$nom_adm)){
 	form_set_error('nom_adm',t('Ingresar un nombre de contacto administrativo válido'));
 }
 
@@ -539,7 +540,8 @@ if(!preg_match('/^(((044|\+[0-9]{1,2})\s?)?[0-9]{5,10}(\s[A-Za-z]+\.?\s[0-9]{1,5
 	form_set_error('tel_adm',t('Ingresar un teléfono de contacto administrativo válido'));
 }
 
-if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ](\.|[a-záéíóúüñ]+\.?)\s?[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ\.]+(\s[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ]+)+$/',$nom_tec)){
+if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ](\.|[a-záéíóúüñ]+\.?)\s?[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ\.]+(\s[A-ZÁÉÍÓÚÜÑa-záéíóúüñ][a-záéíóúüñ\.]+)+$/',$nom_tec)){
+//	if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ\.\s]+$/',$nom_tec)){
 	form_set_error('nom_tec',t('Ingresar un nombre de contacto TÉCNICO válido'));
 }
 
@@ -564,7 +566,7 @@ if(!preg_match('/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ\/\.\ 0-9]+/',$sist_op_ver)
 	form_set_error('sist_op',t('Ingresar una versión de sistema operativo válida'));
 }
 
-if(!preg_match('/^(([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$/',$ip_sitio)){
+if(!preg_match('/^(([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.)((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){2}([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$/',$ip_sitio)){
 	form_set_error('ip_sitio',t('Ingresar una dirección IP del sitio válida'));
 }
 /*
@@ -606,7 +608,7 @@ if(!preg_match('/^\d{1,}(\.\d{1,})*$/',$ver_web)){
 
 //if( is_null($ip_bd) && is_null($puer_acc_bd) && is_null($nom_bd) && is_null($soft_bd) && is_null($ver_bd)){
 if( !(empty($ip_bd) && empty($puer_acc_bd) && empty($nom_bd) && empty($soft_bd) && empty($ver_bd))){
-	if(!preg_match('/^((([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$)/',$ip_bd)){
+	if(!preg_match('/^((([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.)((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){2}([1-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$)/',$ip_bd)){
 		form_set_error('ip_bd',t('Ingresar una ip de base de datos válida'));
 	}
 
@@ -834,7 +836,7 @@ function alta_rev_enviar($form, &$form_submit) {
     }
     catch (Exception $e) {
       $transaccion->rollback();	
-      drupal_set_error(t('Hubo un problema. Por favor intente más tarde.'));
+      drupal_set_message(t('Hubo un problema. Por favor intente más tarde.'),'error');
     }
 	
 }
