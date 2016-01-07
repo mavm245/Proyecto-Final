@@ -50,7 +50,8 @@ function Estadisticas_main(){
 
 
 function Estadisticas_solicitudes_form($form, $form_state){
-	
+	$path=drupal_get_path('module','Estadisticas');
+	drupal_add_js($path.'/sorttable.js',array('type'=>'file','weight'=>1));
 	//form para Numero de Revisiones por auditor:
 	$res = Estadisticas_query_solicitud();
 	$headers1=$res['headers'];
@@ -69,7 +70,8 @@ function Estadisticas_solicitudes_form($form, $form_state){
     '#theme' => 'table',
     '#header' => $headers1,
     '#rows' => $raws2,
-    '#empty' => t('No existen solicitudes'),
+    '#empty' => t('No existen auditores'),
+	'#attributes' => array( 'class' => array('sortable')),
   	);
 
 	//Grafica de auditores.
@@ -117,7 +119,8 @@ function Estadisticas_solicitudes_form($form, $form_state){
 			->execute()
 			->fetchAllKeyed();
     		    
-	 $form['sitios'] = array(
+	 $form['sitios'] = array(
+
     '#title' => t('Sitio la que se desea ver hallazgos.'),
     '#type' => 'select',
     '#options' => $sitios,
@@ -129,13 +132,15 @@ function Estadisticas_solicitudes_form($form, $form_state){
       '#value' => 'Generar',
       '#type' => 'submit',
       '#submit' => array('alta_rev_enviar'),
-    );	
+    );	
+
 */
 	 $form['table2'] = array(
     '#theme' => 'table',
     '#header' => $headers2,
     '#rows' => $raws3,
     '#empty' => t('No existen revisiones o hallazgos.'),
+	'#attributes' => array( 'class' => array('sortable')),
   	);
 
 	//Grafica para hallazgos por revisiones:
@@ -181,6 +186,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
     '#header' => $headers3,
     '#rows' => $raws4,
     '#empty' => t('No existen hallazgos.'),
+	'#attributes' => array( 'class' => array('sortable')),
   	);
 
 	//Grafica para el Numero de Hallazgos Totales:
@@ -232,6 +238,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
     '#header' => $headers4,
     '#rows' => $raws5,
     '#empty' => t('No existen herramientas.'),
+	'#attributes' => array( 'class' => array('sortable')),
   	);
 
 	#echo theme('table', array('header'=>$headers4, 'rows'=>$raws5));
@@ -317,8 +324,10 @@ function Estadisticas_solicitudes_form($form, $form_state){
       '#submit' => array('hallazgosxtiempo'),
     );	
 
-	$fecha_ini=filter_var(strip_tags($form_submit['values']['fecha_ini']),FILTER_SANITIZE_STRING);
-	$fecha_fin=filter_var(strip_tags($form_submit['values']['fecha_fin']),FILTER_SANITIZE_STRING);
+	$fecha_ini=filter_var(strip_tags($form_submit['values']['fecha_ini']),FILTER_SANITIZE_STRING);
+
+	$fecha_fin=filter_var(strip_tags($form_submit['values']['fecha_fin']),FILTER_SANITIZE_STRING);
+
 */
 
 	//form para Numero de Revisiones por año:
@@ -340,6 +349,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
     '#header' => $headers6,
     '#rows' => $raws7,
     '#empty' => t('No existen revisiones.'),
+	'#attributes' => array( 'class' => array('sortable')),
   	);
 
 	//Grafica para el Numero de Revisiones Totales por año:
@@ -384,6 +394,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
     '#header' => $headers7,
     '#rows' => $raws8,
     '#empty' => t('No existen revisiones.'),
+	'#attributes' => array( 'class' => array('sortable')),
   	);
 /*
 	//Grafica para el Numero de Revisiones Totales por año:
@@ -439,6 +450,7 @@ function hallazgosxtiempo(){
     '#header' => $headers5,
     '#rows' => $raws6,
     '#empty' => t('No existen hallazgos.'),
+	'#attributes' => array( 'class' => array('sortable')),
   	);
 }
 

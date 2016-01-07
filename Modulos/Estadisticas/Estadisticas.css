@@ -1,0 +1,45 @@
+/* Sortable tables */
+table.sortable thead {
+    background-color:#eee;
+    color:#666666;
+    font-weight: bold;
+    cursor: default;
+}
+table.sortable tbody {
+    counter-reset: sortabletablescope;
+}
+table.sortable thead tr::before {
+    content: "";
+    display: table-cell;
+}
+table.sortable tbody tr::before {
+    content: counter(sortabletablescope);
+    counter-increment: sortabletablescope;
+    display: table-cell;
+}
+
+table.sortable tbody tr:nth-child(2n) td {
+    background: #ffcccc;
+}
+table.sortable tbody tr:nth-child(2n+1) td {
+    background: #ccfffff;
+}
+
+table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after {
+    content: " \25B4\25BE"
+}
+
+table.sortable th::after, th.sorttable_sorted::after, th.sorttable_sorted_reverse::after {
+    content: " ";
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+}
+th.sorttable_sorted::after {
+    background: url(my-sorted-icon.png);
+    background-size: contain;
+}
+th.sorttable_sorted_reverse::after {
+    background: url(my-sorted-reversed-icon.png);
+    background-size: cover;
+}
