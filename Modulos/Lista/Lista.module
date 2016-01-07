@@ -52,16 +52,15 @@ function Lista_permission() {
 }
 
 function Lista_main(){
-			  return t('<ul style="text-align: justify;">
+	return t('<ul style="text-align: justify;">
 		  		<li>'.l( t("Listado de todas las solicitudes."),'Lista/todas').'</li>
 		  		<li>'.l( t("Listado de solicitudes para visitantes"),'Lista/todas_vis').'</li>
-		    	</ul>');		  
+		    	</ul>');
 }
 
 
 
 function Lista_solicitudes_form($form, $form_state){
-	
 	$res = Lista_query_solicitud();
 	$headers=$res['headers'];
 	$raws=$res['raws'];
@@ -77,11 +76,13 @@ function Lista_solicitudes_form($form, $form_state){
     );
 	 $form['table'] = array(
     '#type' => 'tableselect',
+	//'#theme' => 'table',
     '#header' => $headers,
-    '#options' => $raws2,
+	'#options' => $raws2,
+    //'#options' => $raws2,
     '#empty' => t('No existen solicitudes'),
     '#multiple' => FALSE,
-  	);
+	 );
 	
 	$form['submit_del'] = array(
       '#value' => 'Borrar Solicitud',
@@ -125,7 +126,7 @@ function Lista_solicitudesvis_form($form, $form_state){
 
 function Lista_query_solicitud(){
 	
-	  $registro = db_query('SELECT s.id_solicitud, uw.url_link, s.fecha_ini, s.fecha_fin FROM solicitud s, sitio_web sitw, url_web uw where s.id_sitweb = sitw.id_sitweb and sitw.id_sitweb = uw.id_sitweb;');
+	  $registro = db_query('SELECT s.id_solicitud, uw.url_link, s.fecha_ini, s.fecha_fin FROM solicitud s, sitio_web sitw, url_web uw where s.id_sitweb = sitw.id_sitweb and sitw.id_sitweb = uw.id_sitweb order by s.id_solicitud;');
 	  db_set_active('default');
   
 	  $res = array();
@@ -156,27 +157,87 @@ function Solicitud_borrar($form, &$form_submit) {
 	
 	$values = $form_submit['values'];
 	$solicitud = strip_tags($form_submit['values']['table']);
-	
-	$consulta_rev= "SELECT r.id_solicitud FROM solicitud s, revision r WHERE s.id_solicitud = r.id_solicitud and s.id_solicitud = ".$solicitud.";";
-	$num_rev = db_query($consulta_rev)->fetchAll();
-	$num_rev = count($num_rev);
-	/*
-	$consulta_rev = db_select('solicitud','s')
-					->join('revision','r','s.id_solicitud = r.id_solicitud')
-					->fields('r',array('id_solicitud'))
-					->condition('s.id_solicitud',1,'=')
-					->execute()
-					->fetchAssoc();
-	
-	
-	$result = db_select('revision','r')
-			->join('solicitud','s','r.id_solicitud = s.id_solicitud')
-			->fields('r',array('id_solicitud'))
-			->execute()
-			->fetchField();
-	*/
-	drupal_set_message(t('Something @var just happened.', array('@var' => $num_rev)), 'butterflies');
-	 
+	//drupal_set_message(t('Something @var just happened.', array('@var' => $solicitud)), 'butterflies');
+
+   $consulta_rev = db_select('solicitud','s')
+                   ->fields('s',array('num_rev'))
+                   ->condition('s.id_solicitud',$solicitud,'=')
+                   ->execute()
+	               ->fetchField();
+
+	if($consulta_rev == 1){
+        $query = 'SELECT id_contacto FROM solicitud_contacto where id_solicitud ='.$solicitud.';';
+        $contacto = db_query($query);
+        db_set_active('default');
+        $res = array();
+        foreach ($contacto as $valor) {
+            array_push($res,get_object_vars($valor));
+        }
+        $transaccion = db_transaction();
+        try {
+
+        foreach ($res as $valor) {
+            $sol_cont = db_delete('solicitud_contacto')
+            ->condition('id_contacto', $valor['id_contacto'])
+            ->execute();
+            $cont = db_delete('contacto')
+                ->condition('id_contacto', $valor['id_contacto'])
+                ->execute();
+        }
+            $estado_rev = db_select('revision','r')
+                ->fields('r',array('estado_rev'))
+                ->condition('r.id_solicitud',$solicitud,'=')
+                ->execute()
+                ->fetchField();
+          if($estado_rev == 1){
+           $revision = db_select('revision','r')
+                    ->fields('r',array('id_revision'))
+                    ->condition('s.id_solicitud',$solicitud,'=')
+                    ->execute()
+                    ->fetchField();
+
+            $rev_herr = db_delete('rev_herr')
+                ->condition('id_revision', $revision)
+                ->execute();
+
+            $hall_rev = db_delete('hall_rev')
+                ->condition('id_revision', $revision)
+                ->execute();
+
+            $rev = db_delete('revision')
+                ->condition('id_revision', $revision)
+                ->execute();
+
+            $sol = db_delete('solicitud')
+                  ->condition('id_solicitud', $solicitud)
+                  ->execute();
+
+            }
+            else{
+                $sol = db_delete('solicitud')
+                    ->condition('id_solicitud', $solicitud)
+                    ->execute();
+            }
+            drupal_set_message(t('Borrada solicitud con id = @var, no contiene revisiones.', array('@var' => $solicitud)), 'status');
+        }catch (Exception $e) {
+            $transaccion->rollback();
+            drupal_set_message(t("Hubo un problema. Por favor intente más tarde."), 'error');
+        }
+	}else{
+
+		//drupal_set_message(t('Solicitud no borrada, contiene revisiones.', array('@var' => $consulta_rev)), 'butterflies');
+        drupal_set_message(t("Solicitud no borrada, contiene revisiones"), 'warning');
+	}
+
+   /*
+
+   $result = db_select('revision','r')
+           ->join('solicitud','s','r.id_solicitud = s.id_solicitud')
+           ->fields('r',array('id_solicitud'))
+           ->execute()
+           ->fetchField();
+   */
+
 	 /*
 	$transaccion = db_transaction();
   	try {
