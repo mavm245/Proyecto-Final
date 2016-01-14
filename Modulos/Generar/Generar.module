@@ -943,7 +943,7 @@ function genera_html(){
 style="mso-bookmark:_Toc254176315"><a name="_Toc433285817">Antecedentes</a></span></h2>
 
 </div>
-<p class=MsoNoSpacing style="text-align:justify">Prueba de mensaje para REVISION DE SEGUIMIENTO UNO</p>';
+<p class=MsoNoSpacing style="text-align:justify">Se realizo una revisión de seguridad al sitio '.$nom_sitio.'.</p>';
 	}
 		if($rev == 3){
 			$antecedentes = '<div style="mso-element:para-border-div;border:solid #DBE5F1 3.0pt;padding:
@@ -953,7 +953,7 @@ style="mso-bookmark:_Toc254176315"><a name="_Toc433285817">Antecedentes</a></spa
 style="mso-bookmark:_Toc254176315"><a name="_Toc433285817">Antecedentes</a></span></h2>
 
 </div>
-<p class=MsoNoSpacing style="text-align:justify">Prueba de mensaje para REVISION DE SEGUIMIENTO DOS</p>';
+<p class=MsoNoSpacing style="text-align:justify">Se realizo una revisión de seguridad al sitio '.$nom_sitio.' y una primera revision de seguimiento.</p>';
 		}
 
 		$consulta = "select h.title from revision r, rev_herr sw, node h where sw.id_revision=r.id_revision and sw.nid_herramienta=h.nid and r.id_revision =".$_SESSION['revision'].";";
@@ -1000,15 +1000,12 @@ style="font:7.0pt "Times New Roman"">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&
 		foreach($recomendaciones  as $info2){
 		$recoid = $info2->nid;
 		$reco= $info2->field_descripcion_value;
-		$recom = '<p class=MsoListParagraphCxSpFirst style="margin-left:18.35pt;mso-add-space:
-  auto;text-align:justify;text-indent:-18.0pt;mso-list:l7 level1 lfo8;
-  mso-yfti-cnfc:64"><span style="mso-bookmark:_Toc357531590"><![if !supportLists]><span
-  style="font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family:
-  Symbol"><span style="mso-list:Ignore">·<span style="font:7.0pt "Times New Roman"">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  </span></span></span><![endif]>'.$reco.'</span></p>
-  <p class=MsoListParagraphCxSpMiddle style="margin-left:18.35pt;mso-add-space:
-  auto;text-align:justify;mso-yfti-cnfc:64"></p><p class=MsoListParagraphCxSpMiddle style="margin-left:18.35pt;mso-add-space:
-  auto;text-align:justify;mso-yfti-cnfc:64"><o:p>&nbsp;</o:p></p>'.$recom;
+		$reco = str_replace('<em>', '<i>', $reco);
+		$reco = str_replace('</em>', '</i>', $reco);
+		$recom = '<p class=MsoListParagraphCxSpFirst style="margin-left:18.35pt;mso-add-space:auto;text-align:justify;text-indent:-18.0pt;mso-list:l7 level1 lfo8;mso-yfti-cnfc:64"><span style="mso-bookmark:_Toc357531590"><![if !supportLists]><span style="font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family:Symbol"><span style="mso-list:Ignore">·<span style="font:7.0pt "Times New Roman"">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></span></span><![endif]>'.$reco.'</span></p> <p class=MsoListParagraphCxSpMiddle style="margin-left:18.35pt;mso-add-space:auto;text-align:justify;mso-yfti-cnfc:64"></p><p class=MsoListParagraphCxSpMiddle style="margin-left:18.35pt;mso-add-space:auto;text-align:justify;mso-yfti-cnfc:64"><o:p>&nbsp;</o:p></p>'.$recom;
+
+
+
   		$consulta3= "select rf.field_referencia_fk_target_id, li.field_link_referencia_value from field_data_field_referencia_fk rf, field_data_field_link_referencia li where li.entity_id = rf.field_referencia_fk_target_id and rf.entity_id = ".$recoid.";";
 		$referencias= db_query($consulta3);
 		foreach($referencias as $info3) {
@@ -5401,7 +5398,7 @@ src="Plantilla_Reporte_archivos/image003.gif" v:shapes="_x0000_s1034"></span></s
 style="mso-bidi-font-weight:normal"><o:p></o:p></b></p>
 
 <p class=MsoNormal align=center style="text-align:center"><a
-href="http://192.168.7.3/cert.gif"><span
+href="http://revisiones.seguridad.unam.mx/Cert-UNAM.gif"><span
 style="color:windowtext;mso-fareast-language:ES-MX;mso-bidi-language:AR-SA;
 mso-no-proof:yes;text-decoration:none;text-underline:none"><!--[if gte vml 1]><v:shapetype
  id="_x0000_t75" coordsize="21600,21600" o:spt="75" o:preferrelative="t"
@@ -5424,15 +5421,16 @@ mso-no-proof:yes;text-decoration:none;text-underline:none"><!--[if gte vml 1]><v
  <v:path o:extrusionok="f" gradientshapeok="t" o:connecttype="rect"/>
  <o:lock v:ext="edit" aspectratio="t"/>
 </v:shapetype><v:shape id="Imagen_x0020_1" o:spid="_x0000_i1025" type="#_x0000_t75"
- alt="http://192.168.7.3/cert.gif"
- href="http://192.168.7.3/cert.gif"
+ alt="http://revisiones.seguridad.unam.mx/Cert-UNAM.gif"
+ href="http://revisiones.seguridad.unam.mx/Cert-UNAM.gif"
  style="width:269.25pt;height:300pt;visibility:visible;mso-wrap-style:square"
  o:button="t">
  <v:fill o:detectmouseclick="t"/>
- <v:imagedata src="http://192.168.7.3/cert.gif" o:title="cert.gif"/>
+ <v:imagedata src="http://revisiones.seguridad.unam.mx/Cert-UNAM.gif" o:title="cert.gif"/>
+
 </v:shape><![endif]--><![if !vml]><span style="mso-ignore:vglayout"><img
-border=0 width=359 height=400 src="http://192.168.7.3/cert.gif"
-alt="http://192.168.7.3/cert.gif"
+border=0 width=359 height=400 src="http://revisiones.seguridad.unam.mx/Cert-UNAM.gif"
+alt="http://revisiones.seguridad.unam.mx/Cert-UNAM.gif"
 v:shapes="Imagen_x0020_1"></span><![endif]></span></a><b style="mso-bidi-font-weight:
 normal"><o:p></o:p></b></p>
 
