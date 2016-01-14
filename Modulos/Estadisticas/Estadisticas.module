@@ -454,9 +454,22 @@ function hallazgosxtiempo(){
   	);
 }
 
-function Estadisticas_query_solicitud(){
+function Estadisticas_query_solicitud(){	
 	
-	  $registro  = db_query('SELECT nid, title auditor, count(sitio_nombre) auditorias from node,revision,solicitud where type=\'auditor\' and nid_auditor=nid and solicitud.id_solicitud=revision.id_solicitud GROUP BY nid;');
+#	  $registro  = db_query('SELECT nid, title auditor, count(sitio_nombre) auditorias from node,revision,solicitud where type=\'auditor\' and nid_auditor=nid and solicitud.id_solicitud=revision.id_solicitud GROUP BY nid,title;');
+$registro = db_query('SELECT n.nid, n.title auditor, count(s.sitio_nombre) auditorias from node n, revision r, solicitud s where type=\'auditor\' and r.nid_auditor=n.nid and s.id_solicitud=r.id_solicitud GROUP BY n.title,n.nid;');
+	 
+/*
+ $registro=db_select('node','n');
+$registro->join('revision','r','r.nid_auditor=n.nid');
+$registro->join('solicitud','s','s.id_solicitud=r.id_solicitud');
+$registro->fields('n',array('nid','title'))
+	->condition('n.type','auditor','=')
+        ->orderBy('n.nid','ASC');
+$registro->addExpression('COUNT(s.sitio_nombre)', 'auditorias');
+$registro->execute()
+         ->fetchAllKeyed();
+*/
 	  db_set_active('default');
   
 	  $res = array();
@@ -507,7 +520,8 @@ function Estadisticas_query_hallxrev(){
 
 function Estadisticas_query_hall_tot(){
 	
-	  $registro  = db_query('SELECT nid, title hallazgo, count(title) num_hallazgos FROM node, hall_rev WHERE type=\'hallazgo\' and nid=nid_hallazgo GROUP BY nid ORDER BY num_hallazgos DESC;');
+#	  $registro  = db_query('SELECT nid, title hallazgo, count(title) num_hallazgos FROM node, hall_rev WHERE type=\'hallazgo\' and nid=nid_hallazgo GROUP BY nid ORDER BY num_hallazgos DESC;');
+$registro = db_query('SELECT n.nid, n.title hallazgo, count(n.title) num_hallazgos FROM node n, hall_rev hr WHERE type=\'hallazgo\' and n.nid=hr.nid_hallazgo GROUP BY n.nid,n.title ORDER BY num_hallazgos DESC;');
 	  db_set_active('default');
   
 	  $res = array();
@@ -532,8 +546,10 @@ function Estadisticas_query_hall_tot(){
 
 function Estadisticas_query_herr_tot(){
 	
-	  $registro  = db_query('SELECT nid, title herramienta, count(nid) usos FROM node, rev_herr WHERE type=\'herramienta\' AND nid_herramienta=nid GROUP BY nid ORDER BY usos DESC;');
-	  db_set_active('default');
+#	  $registro  = db_query('SELECT nid, title herramienta, count(nid) usos FROM node, rev_herr WHERE type=\'herramienta\' AND nid_herramienta=nid GROUP BY nid ORDER BY usos DESC;');
+$registro = $registro  = db_query('SELECT n.nid, n.title herramienta, count(n.nid) usos FROM node n, rev_herr rh WHERE type=\'herramienta\' AND rh.nid_herramienta=n.nid GROUP BY n.nid,n.title ORDER BY usos DESC;');	  
+
+	db_set_active('default');
   
 	  $res = array();
 	  
