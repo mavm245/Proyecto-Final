@@ -11,13 +11,13 @@
 
 
 --tipo_organizacion
-CREATE TABLE IF NOT EXISTS tipo_organizacion(
+CREATE TABLE tipo_organizacion(
 	id_tiporg serial primary key,
 	tipo_nombre varchar(30) NOT NULL
 );
 
 --organizacion
-CREATE TABLE IF NOT EXISTS organizacion(
+CREATE TABLE organizacion(
 	id_organizacion serial primary key,
 	org_nombre varchar(80) NOT NULL,
 	id_tiporg integer,
@@ -25,13 +25,13 @@ CREATE TABLE IF NOT EXISTS organizacion(
 );
 
 --tipo_contacto
-CREATE TABLE IF NOT EXISTS tipo_contacto(
+CREATE TABLE tipo_contacto(
 	id_tipo_contacto serial primary key,
 	tipo_contacto varchar(30) NOT NULL
 );
 
 --contacto
-CREATE TABLE IF NOT EXISTS contacto(
+CREATE TABLE contacto(
 	id_contacto serial primary key,
 	cont_nombre varchar(60) NOT NULL,
 	cont_correo varchar(60) NOT NULL,
@@ -41,13 +41,13 @@ CREATE TABLE IF NOT EXISTS contacto(
 );
 
 --sistema_manejador
-CREATE TABLE IF NOT EXISTS sistema_manejador(
+CREATE TABLE sistema_manejador(
 	id_sistema serial primary key,
 	nombre_rdbms varchar(50)
 );
 
 --manejador_db
-CREATE TABLE IF NOT EXISTS manejador_db(
+CREATE TABLE manejador_db(
 	id_rdbms serial primary key,
 	id_sistema integer,
 	rdbms_ver varchar(30) NOT NULL,
@@ -59,25 +59,25 @@ CREATE TABLE IF NOT EXISTS manejador_db(
 );
 
 --protos_acceso
-CREATE TABLE IF NOT EXISTS protos_acceso(
+CREATE TABLE protos_acceso(
 	id_proto serial primary key,
 	protocolo varchar(50) NOT NULL
 );
 
 --servidor_so
-CREATE TABLE IF NOT EXISTS servidor_so(
+CREATE TABLE servidor_so(
 	id_so serial primary key,
 	nombre_so varchar(30) NOT NULL
 );
 
 --soft_servidor
-CREATE TABLE IF NOT EXISTS soft_servidor(
+CREATE TABLE soft_servidor(
 	id_soft serial primary key,
 	software_nombre varchar(30) NOT NULL
 );
 
 --servidor_web
-CREATE TABLE IF NOT EXISTS servidor_web(
+CREATE TABLE servidor_web(
 	id_serweb serial primary key,
 	id_so integer,
 	serweb_ver varchar(100) NOT NULL,
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS servidor_web(
 );
 
 --sitio_web
-CREATE TABLE IF NOT EXISTS sitio_web(
+CREATE TABLE sitio_web(
 	id_sitweb serial primary key,
 	id_soft integer,
 	sitweb_vers varchar(30) NOT NULL,
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS sitio_web(
 );
 
 --url_web
-CREATE TABLE IF NOT EXISTS url_web(
+CREATE TABLE url_web(
 	id_url serial primary key,
 	url_link varchar(150) NOT NULL,
 	id_sitweb integer,
@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS url_web(
 );
 
 --puertos_web
-CREATE TABLE IF NOT EXISTS puertos_web(
+CREATE TABLE puertos_web(
 	id_puerto_web serial primary key,
 	puerto_web integer,
 	id_sitweb integer,
@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS puertos_web(
 );
 
 --solicitud
-CREATE TABLE IF NOT EXISTS solicitud(
+CREATE TABLE solicitud(
 	id_solicitud serial primary key,
 	id_organizacion integer,
 	fecha_sol date,
@@ -128,6 +128,7 @@ CREATE TABLE IF NOT EXISTS solicitud(
 	fecha_ini date,
 	fecha_fin date,
 	id_sitweb integer,
+	num_rev smallint default 1,
 	sitio_nombre varchar(50),
 	FOREIGN KEY (id_organizacion) REFERENCES organizacion(id_organizacion),
 	FOREIGN KEY (id_sitweb) REFERENCES sitio_web(id_sitweb),
@@ -137,7 +138,7 @@ CREATE TABLE IF NOT EXISTS solicitud(
 );
 
 --solicitud_contacto
-CREATE TABLE IF NOT EXISTS solicitud_contacto(
+CREATE TABLE solicitud_contacto(
 	id_solicitud integer,
 	id_contacto integer,
 	FOREIGN KEY (id_solicitud) REFERENCES solicitud(id_solicitud),
@@ -145,7 +146,7 @@ CREATE TABLE IF NOT EXISTS solicitud_contacto(
 );
 
 --revision
-CREATE TABLE IF NOT EXISTS revision(
+CREATE TABLE revision(
 	id_revision serial primary key,
 	id_solicitud integer,
 	nid_auditor integer,
@@ -155,7 +156,7 @@ CREATE TABLE IF NOT EXISTS revision(
 );
 
 --hall_rev
-CREATE TABLE IF NOT EXISTS hall_rev(
+CREATE TABLE hall_rev(
 	id_revision serial,
 	nid_hallazgo serial,
 	payload varchar(255),
@@ -164,7 +165,7 @@ CREATE TABLE IF NOT EXISTS hall_rev(
 );
 
 --rev_herr
-CREATE TABLE IF NOT EXISTS rev_herr(
+CREATE TABLE rev_herr(
 	id_revision serial,
 	nid_herramienta serial,
 	FOREIGN KEY (id_revision) REFERENCES revision(id_revision),
@@ -173,4 +174,26 @@ CREATE TABLE IF NOT EXISTS rev_herr(
 
 --Cambio de permisos
 
-GRANT ALL ON tipo_organizacion, organizacion, tipo_contacto, contacto, sistema_manejador, manejador_db, protos_acceso, servidor_so, soft_servidor, servidor_web, solicitud, solicitud_contacto, revision, hall_rev, rev_herr TO adm_revbd;
+GRANT ALL ON tipo_organizacion, organizacion, tipo_contacto, contacto, sistema_manejador, manejador_db, protos_acceso, servidor_so, soft_servidor, servidor_web, solicitud, solicitud_contacto, revision, hall_rev, rev_herr TO adm_revdb;
+
+--Cambio de permisos para versiones de postgres menores a 8.4
+
+ GRANT USAGE, SELECT ON SEQUENCE organizacion_id_organizacion_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE contacto_id_contacto_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE hall_rev_id_revision_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE hall_rev_nid_hallazgo_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE protos_acceso_id_proto_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE puertos_web_id_puerto_web_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE rev_herr_id_revision_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE rev_herr_nid_herramienta_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE revision_id_revision_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE servidor_so_id_so_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE servidor_web_id_serweb_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE sistema_manejador_id_sistema_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE sitio_web_id_sitweb_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE soft_servidor_id_soft_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE solicitud_id_solicitud_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE tipo_contacto_id_tipo_contacto_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE tipo_organizacion_id_tiporg_seq TO adm_revdb;
+ GRANT USAGE, SELECT ON SEQUENCE url_web_id_url_seq TO adm_revdb;          
+ GRANT USAGE, SELECT ON SEQUENCE manejador_db_id_rdbms_seq TO adm_revdb;
