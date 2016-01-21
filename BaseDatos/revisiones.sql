@@ -19,7 +19,7 @@ CREATE TABLE tipo_organizacion(
 --organizacion
 CREATE TABLE organizacion(
 	id_organizacion serial primary key,
-	org_nombre varchar(80) NOT NULL,
+	org_nombre varchar(100) NOT NULL,
 	id_tiporg integer,
 	FOREIGN KEY (id_tiporg) REFERENCES tipo_organizacion(id_tiporg)
 );
@@ -129,7 +129,7 @@ CREATE TABLE solicitud(
 	fecha_fin date,
 	id_sitweb integer,
 	num_rev smallint default 1,
-	sitio_nombre varchar(50),
+	sitio_nombre varchar(100),
 	FOREIGN KEY (id_organizacion) REFERENCES organizacion(id_organizacion),
 	FOREIGN KEY (id_sitweb) REFERENCES sitio_web(id_sitweb),
 	CHECK (fecha_sol <= fecha_disp AND fecha_sol <= fecha_ini AND fecha_sol < fecha_fin),
@@ -159,7 +159,6 @@ CREATE TABLE revision(
 CREATE TABLE hall_rev(
 	id_revision serial,
 	nid_hallazgo serial,
-	payload varchar(255),
 	FOREIGN KEY (id_revision) REFERENCES revision(id_revision),
 	FOREIGN KEY (nid_hallazgo) REFERENCES node(nid)
 );
