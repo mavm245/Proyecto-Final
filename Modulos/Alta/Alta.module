@@ -139,7 +139,7 @@ function alta_rev_form($form,&$form_submit) {
     '#filters' => array('trim','strip_tags'),
   );
  
-  $info1 = "<div class='apartado'><u>Organización.</u></div>";  
+  $info1 = "<div class='apartado'>Organización.</div>";  
   $form['info1'] = array(
     '#type' => 'item',
     '#title' => $info1,
@@ -163,7 +163,7 @@ function alta_rev_form($form,&$form_submit) {
     '#empty_option' => '-Seleccione-',
   );
   
-  $info2 = "<div cl,ass='apartado'><u>Periodo de revisión.</u></div>";  
+  $info2 = "<div class='apartado'>Periodo de revisión.</div>";  
   $form['info2'] = array(
     '#type' => 'item',
     '#title' => $info2,
@@ -215,7 +215,7 @@ function alta_rev_form($form,&$form_submit) {
     '#title' => $info3,
   );
   
-  $info4 = "<div class='apartado'><u>Contacto administrativo -Administrador del proyecto.</u></div>";  
+  $info4 = "<div class='apartado'>Contacto administrativo -Administrador del proyecto.</div>";  
   $form['info4'] = array(
     '#type' => 'item',
     '#title' => $info4,
@@ -243,7 +243,7 @@ function alta_rev_form($form,&$form_submit) {
     '#default_value' => $tel_adm,
   );
   
-   $info5 = "<div class='apartado'><u>Contacto técnico -Administrador del sitio web.</u></div>";  
+   $info5 = "<div class='apartado'>Contacto técnico -Administrador del sitio web.</div>";  
    $form['info5'] = array(
     '#type' => 'item',
     '#title' => $info5,
@@ -277,7 +277,7 @@ function alta_rev_form($form,&$form_submit) {
     '#type' => 'item',
     '#title' => $info6,
   );
-    $info7 = "<div class='apartado'><u>Sistema Operativo</u></div>";  
+    $info7 = "<div class='apartado'>Sistema Operativo</div>";  
    $form['info7'] = array(
     '#type' => 'item',
     '#title' => $info7,
@@ -333,7 +333,7 @@ function alta_rev_form($form,&$form_submit) {
     '#filters' => array('trim','strip_tags'),
   );
   
-   $info8 = "<div class='apartado'><u>Sitio web</u></div>";  
+   $info8 = "<div class='apartado'>Sitio web</div>";  
    $form['info8'] = array(
     '#type' => 'item',
     '#title' => $info8,
@@ -354,6 +354,7 @@ function alta_rev_form($form,&$form_submit) {
     '#required' => TRUE,
     '#default_value' => $puer_acc_web,
     '#filters' => array('trim','strip_tags'),
+    '#description' => 'Mas de un puerto deben estar separados por comas.  Ej: 80,443',
   );
   
     $form['url_sitio'] = array(
@@ -380,7 +381,7 @@ function alta_rev_form($form,&$form_submit) {
     '#filters' => array('trim','strip_tags'),
   );
   
-   $info9 = "<div class='apartado'><u>Manejador de Base de Datos</u></div>";  
+   $info9 = "<div class='apartado'>Manejador de Base de Datos</div>";  
    $form['info9'] = array(
     '#type' => 'item',
     '#title' => $info9,

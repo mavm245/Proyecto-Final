@@ -15,5 +15,6 @@
 .apartado
 {
   position: relative; 
-  color: green;
+  color: red;
+  font-size:14px;
 }
