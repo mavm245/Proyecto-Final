@@ -30,6 +30,14 @@ function Lista_menu() {
     'page arguments' => array('Lista_solicitudesvis_form'),
     'access arguments' => array('Lista/todas_vis'),
   );
+  
+   $items['Lista/detalles'] = array(
+    'title' => 'Solicitud detalles',    
+	'page callback' => 'drupal_get_form',
+    'page arguments' => array('Solicitud_vis'),
+    'access arguments' => array('Lista'),
+  );
+  
   return $items;
 }
 
@@ -47,6 +55,11 @@ function Lista_permission() {
   'Lista/todas_vis' => array(
       'title' => t('Permisos para visualizar todas visitante'),
       'description' => t('Seleccion de usuarios que pueden tener acceso a la lista para visitantes'),
+    ),
+    
+    'Lista/detalles' => array(
+      'title' => t('Permisos para visualizar los detalles de las solicitudes'),
+      'description' => t('Seleccion de usuarios que pueden tener acceso a la lista de detalles'),
     ),
   );
 }
@@ -68,8 +81,7 @@ function Lista_solicitudes_form($form, $form_state){
 	foreach ($raws as $raw) {
 		$raws2[$raw['ID']]=$raw;
 	}
-    $leyenda = Lista_main();
-    		    
+
     $form['etapa'] = array(
       '#type' => 'item',
       '#title' => $leyenda,
@@ -82,6 +94,7 @@ function Lista_solicitudes_form($form, $form_state){
     //'#options' => $raws2,
     '#empty' => t('No existen solicitudes'),
     '#multiple' => FALSE,
+    '#required' => TRUE,
 	 );
 	
 	$form['submit_del'] = array(
@@ -95,38 +108,33 @@ function Lista_solicitudes_form($form, $form_state){
 
 function Lista_solicitudesvis_form($form, $form_state){
 	
-	$res = Lista_query_solicitud();
+	$res = Lista_query_solicitud_vis();
 	$headers=$res['headers'];
 	$raws=$res['raws'];
  	$raws2=array();
 	foreach ($raws as $raw) {
 		$raws2[$raw['ID']]=$raw;
 	}
-    $leyenda = Lista_main();
-    		    
+
     $form['etapa'] = array(
       '#type' => 'item',
       '#title' => $leyenda,
     );
-	 $form['table'] = array(
-    '#type' => 'tableselect',
-    '#header' => $headers,
-    '#options' => $raws2,
-    '#empty' => t('No existen solicitudes'),
-    '#multiple' => FALSE,
-  	);
 	
-	$form['submit'] = array(
-      '#value' => 'Ver solicitud',
-      '#type' => 'submit',
-      '#submit' => array('ver_solicitud'),
-    );
+	$form['table'] = array(
+    '#theme' => 'table',
+    '#header' => $headers,
+    '#rows' => $raws2,
+    '#empty' => t('No existen Solicitudes'),
+	'#attributes' => array( 'class' => array('sortable')),
+  	);
+
   return $form;	
 }
 
 function Lista_query_solicitud(){
 	
-	  $registro = db_query('SELECT s.id_solicitud, uw.url_link, s.fecha_ini, s.fecha_fin FROM solicitud s, sitio_web sitw, url_web uw where s.id_sitweb = sitw.id_sitweb and sitw.id_sitweb = uw.id_sitweb order by s.id_solicitud;');
+	  $registro = db_query('SELECT s.id_solicitud, uw.url_link, s.fecha_ini, s.fecha_fin, s.num_rev FROM solicitud s, sitio_web sitw, url_web uw where s.id_sitweb = sitw.id_sitweb and sitw.id_sitweb = uw.id_sitweb order by s.id_solicitud;');
 	  db_set_active('default');
   
 	  $res = array();
@@ -137,21 +145,617 @@ function Lista_query_solicitud(){
    	  
 	  $array = array();
 	  $array['raws'] =array();
-	  $array['headers'] =array( 'ID'=>'ID','URL_Sitio'=>'URL_Sitio','Fecha_Inicio'=>'Fecha_Inicio','Fecha_Fin'=>"Fecha_Fin");
+	  $array['headers'] =array( 'ID'=>'ID','URL_Sitio'=>'URL_Sitio','Fecha_Inicio'=>'Fecha_Inicio','Fecha_Fin'=>"Fecha_Fin",'num_rev'=>'Estatus');
 	  
 	  foreach ($res as $valor) {  
-	  	$array_tmp = array();
-		  	$array_tmp["ID"] 				= $valor['id_solicitud'];
+	  	
+			if($valor['num_rev'] == 1){
+			$estatus = "Pendiente";
+			}
+			if($valor['num_rev'] == 2){
+		 	$estatus = "1ra revisión";
+			}
+			if($valor['num_rev'] == 3){
+			$estatus = "2da revisión";
+			}
+	   $array_tmp = array();
+		  	$array_tmp["ID"] 			= $valor['id_solicitud'];
 			$array_tmp["URL_Sitio"] 		= $valor['url_link'];
 			$array_tmp["Fecha_Inicio"]	 	= $valor['fecha_ini'];	
 			$array_tmp["Fecha_Fin"] 		= $valor['fecha_fin'];
+			$array_tmp["num_rev"] 			= $estatus;
 	    array_push($array['raws'],$array_tmp);
 	  }
 	  return $array;		
 	
 }
-function Lista_generar($form, &$form_submit) {
+
+function Lista_query_solicitud_vis(){
+	  $solicitud = db_query('SELECT s.id_solicitud, uw.url_link, s.fecha_ini, s.fecha_fin, s.num_rev FROM solicitud s, sitio_web sitw, url_web uw where s.id_sitweb = sitw.id_sitweb and sitw.id_sitweb = uw.id_sitweb order by s.id_solicitud;');
+	  db_set_active('default');
+  
+	  $res = array();
+	  
+      foreach ($solicitud as $valor) {
+	    array_push($res,get_object_vars($valor));
+  	  }	
+   	  
+	  $array = array();
+	  $array['raws'] =array();
+	  $array['headers'] =array( 'ID'=>'ID','URL_Sitio'=>'URL_Sitio','Fecha_Inicio'=>'Fecha_Inicio','Fecha_Fin'=>"Fecha_Fin",'num_rev'=>'Estatus','Informacion'=>"Informacion");
+	  
+	  foreach ($res as $valor) {
+			if($valor['num_rev'] == 1){
+			$estatus = "Pendiente";
+			}
+			if($valor['num_rev'] == 2){
+		 	$estatus = "1ra revisión";
+			}
+			if($valor['num_rev'] == 3){
+			$estatus = "2da revisión";
+			}
+
+	  	$array_tmp = array();
+		  	$array_tmp["ID"] 				= $valor['id_solicitud'];
+			$array_tmp["URL_Sitio"] 		= $valor['url_link'];
+			$array_tmp["Fecha_Inicio"]	 	= $valor['fecha_ini'];	
+			$array_tmp["Fecha_Fin"] 		= $valor['fecha_fin'];
+			$array_tmp["num_rev"] 			= $estatus;
+			$array_tmp["Informacion"]		= '<a href="detalles/?idSol='.$valor['id_solicitud'].'">Detalles</a>';
+			
+	    array_push($array['raws'],$array_tmp);
+	  }
+	  return $array;		
+	
 }
+
+
+function Solicitud_vis($form, $form_state) {
+	$solicitud=filter_var(strip_tags(isset($_GET['idSol'])?$_GET['idSol']:0),FILTER_SANITIZE_NUMBER_INT);
+	db_set_active('default');
+	$sol_con = db_query("select s.id_organizacion, s.fecha_sol, s.fecha_disp, s.fecha_ini, s.fecha_fin, s.id_sitweb, s.sitio_nombre, s.num_rev, t.tipo_nombre, o.org_nombre from tipo_organizacion t, organizacion o, solicitud s where s.id_organizacion = o.id_organizacion and o.id_tiporg = t.id_tiporg and id_solicitud = :id
+       ",array(":id"=>$solicitud));
+	$sol_con = $sol_con->fetchAssoc();
+	
+	$sol_dat_adm = db_query("select c.cont_nombre, c.cont_correo, c.cont_tel from solicitud_contacto sc, contacto c where sc.id_contacto = c.id_contacto and c.id_tipo_contacto = 1 and sc.id_solicitud = :id
+       ",array(":id"=>$solicitud));
+	$sol_dat_adm = $sol_dat_adm->fetchAssoc();
+	
+	$sol_dat_tec = db_query("select c.cont_nombre, c.cont_correo, c.cont_tel from solicitud_contacto sc, contacto c where sc.id_contacto = c.id_contacto and c.id_tipo_contacto = 2 and sc.id_solicitud = :id
+       ",array(":id"=>$solicitud));
+	$sol_dat_tec = $sol_dat_tec->fetchAssoc();
+	
+	$sol_sew = db_query("select * from sitio_web sw, servidor_web sew, servidor_so ss, protos_acceso pa, manejador_db md, sistema_manejador sm, soft_servidor sf, url_web ur where sw.id_serweb = sew.id_serweb and sew.id_so = ss.id_so and sew.id_proto = pa.id_proto and sw.id_rdbms = md.id_rdbms and md.id_sistema = sm.id_sistema and sf.id_soft = sw.id_soft and ur.id_sitweb = sw.id_sitweb and sw.id_sitweb = :id 
+	",array(":id"=>$sol_con["id_sitweb"]));
+	$sol_sew = $sol_sew->fetchAssoc();
+	
+	
+	$query = 'select pw.puerto_web from sitio_web sw, puertos_web pw where sw.id_sitweb = pw.id_sitweb and sw.id_sitweb ='.$sol_con["id_sitweb"].';';
+  	$pu = db_query($query); 
+	
+	$res = array();
+	$puerto = '';
+      foreach ($pu as $valor) {
+	    array_push($res,get_object_vars($valor));
+  	  }	
+  	  
+  	  foreach ($res as $v1) {
+    foreach ($v1 as $v2) {
+        $puerto = $puerto.' '.$v2;
+    }
+}
+
+	Lista_main();
+	
+	//print_r($res);
+	//drupal_set_message(t('Something @var just happened this is test', array('@var' => $puerto)), 'status');   
+/////////// Solicitud
+  $form['info'] = array(
+    '#type' => 'item', 
+    '#title' => '<h4>Detalles de solicitud N° '.$solicitud.'<h4>',
+    '#prefix' => '<table style=" float: left">',
+    '#suffix' => '</table>',
+  );
+  $form['info']['row1'] = array(
+    '#type' => 'item',
+    '#title' => '',
+    '#prefix' => '<tr>',
+    '#suffix' => '</tr>',
+  );
+  $form['info']['row1']['etiqueta'] = array(
+    '#type' => 'item',
+    '#title' => t('Nombre del sitio:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info']['row1']['valor'] = array(
+    '#type' => 'item',
+    '#title' => $sol_con['sitio_nombre'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+ ///Datos organizacion 
+  $form['info1'] = array(
+    '#type' => 'item', 
+    '#title' => t('Organización'),
+    '#prefix' => '<table style=" float: left">',
+    '#suffix' => '</table>',
+  );
+  $form['info1']['row1'] = array(
+    '#type' => 'item',
+    '#title' => '',
+    '#prefix' => '<tr>',
+    '#suffix' => '</tr>',
+  );
+  $form['info1']['row1']['etiqueta'] = array(
+    '#type' => 'item',
+    '#title' => t('Nombre de organizacion:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info1']['row1']['valor'] = array(
+    '#type' => 'item',
+    '#title' => $sol_con['org_nombre'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  $form['info1']['row1']['etiqueta1'] = array(
+    '#type' => 'item',
+    '#title' => t('Tipo de organización:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info1']['row1']['valor1'] = array(
+    '#type' => 'item',
+    '#title' => $sol_con['tipo_nombre'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  
+ //Datos fechas solicitud
+    $form['info2'] = array(
+    '#type' => 'item', 
+    '#title' => t('Fechas'),
+    '#prefix' => '<table style=" float: left">',
+    '#suffix' => '</table>',
+  );
+  $form['info2']['row1'] = array(
+    '#type' => 'item',
+    '#title' => '',
+    '#prefix' => '<tr>',
+    '#suffix' => '</tr>',
+  );
+  $form['info2']['row1']['etiqueta'] = array(
+    '#type' => 'item',
+    '#title' => t('Fecha de Solicitud:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info2']['row1']['valor'] = array(
+    '#type' => 'item',
+    '#title' => $sol_con['fecha_sol'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  $form['info2']['row1']['etiqueta1'] = array(
+    '#type' => 'item',
+    '#title' => t('Fecha de disponibilidad:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info2']['row1']['valor1'] = array(
+    '#type' => 'item',
+    '#title' => $sol_con['fecha_disp'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  
+    $form['info2']['row2'] = array(
+    '#type' => 'item',
+    '#title' => '',
+    '#prefix' => '<tr>',
+    '#suffix' => '</tr>',
+  );
+  $form['info2']['row2']['etiqueta'] = array(
+    '#type' => 'item',
+    '#title' => t('Fecha de Inicio de revisión:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info2']['row2']['valor'] = array(
+    '#type' => 'item',
+    '#title' => $sol_con['fecha_ini'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+    $form['info2']['row2']['etiqueta1'] = array(
+    '#type' => 'item',
+    '#title' => t('Fecha de Fin de revisión:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info2']['row2']['valor1'] = array(
+    '#type' => 'item',
+    '#title' => $sol_con['fecha_fin'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  
+  //Datos de contacto
+  
+  $form['info3'] = array(
+    '#type' => 'item', 
+    '#title' => t('Datos de contacto'),
+    '#prefix' => '<table style=" float: left">',
+    '#suffix' => '</table>',
+  );
+  
+  //Datos de contacto administrativo
+  
+  $form['info4'] = array(
+    '#type' => 'item', 
+    '#title' => t('Contacto administrativo -Administrador del proyecto.'),
+    '#prefix' => '<table style=" float: left">',
+    '#suffix' => '</table>',
+  );
+  
+  $form['info4']['row1'] = array(
+    '#type' => 'item',
+    '#title' => '',
+    '#prefix' => '<tr>',
+    '#suffix' => '</tr>',
+  );
+  $form['info4']['row1']['etiqueta'] = array(
+    '#type' => 'item',
+    '#title' => t('Nombre:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info4']['row1']['valor'] = array(
+    '#type' => 'item',
+    '#title' => $sol_dat_adm['cont_nombre'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  $form['info4']['row1']['etiqueta1'] = array(
+    '#type' => 'item',
+    '#title' => t('Correo:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info4']['row1']['valor1'] = array(
+    '#type' => 'item',
+    '#title' => $sol_dat_adm['cont_correo'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  $form['info4']['row1']['etiqueta2'] = array(
+    '#type' => 'item',
+    '#title' => t('Teléfono:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info4']['row1']['valor2'] = array(
+    '#type' => 'item',
+    '#title' => $sol_dat_adm['cont_tel'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  
+  
+  //Datos de contacto técnico
+  $form['info5'] = array(
+    '#type' => 'item', 
+    '#title' => t('Contacto técnico -Administrador del sitio web.'),
+    '#prefix' => '<table style=" float: left">',
+    '#suffix' => '</table>',
+  );
+  
+   $form['info5']['row1'] = array(
+    '#type' => 'item',
+    '#title' => '',
+    '#prefix' => '<tr>',
+    '#suffix' => '</tr>',
+  );
+  $form['info5']['row1']['etiqueta'] = array(
+    '#type' => 'item',
+    '#title' => t('Nombre:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info5']['row1']['valor'] = array(
+    '#type' => 'item',
+    '#title' => $sol_dat_tec['cont_nombre'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  $form['info5']['row1']['etiqueta1'] = array(
+    '#type' => 'item',
+    '#title' => t('Correo:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info5']['row1']['valor1'] = array(
+    '#type' => 'item',
+    '#title' => $sol_dat_tec['cont_correo'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  $form['info5']['row1']['etiqueta2'] = array(
+    '#type' => 'item',
+    '#title' => t('Teléfono:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info5']['row1']['valor2'] = array(
+    '#type' => 'item',
+    '#title' => $sol_dat_tec['cont_tel'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  
+ //////Requerimientos
+    $form['info6'] = array(
+    '#type' => 'item', 
+    '#title' => t('Requerimientos'),
+    '#prefix' => '<table style=" float: left">',
+    '#suffix' => '</table>',
+  );
+  
+  //Sistema operativo
+  	  $form['info7'] = array(
+    '#type' => 'item', 
+    '#title' => t('Detalles servidor'),
+    '#prefix' => '<table style=" float: left">',
+    '#suffix' => '</table>',
+  );
+	$form['info7']['row1'] = array(
+    '#type' => 'item',
+    '#title' => '',
+    '#prefix' => '<tr>',
+    '#suffix' => '</tr>',
+  );
+  $form['info7']['row1']['etiqueta'] = array(
+    '#type' => 'item',
+    '#title' => t('Sistema Operativo:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info7']['row1']['valor'] = array(
+    '#type' => 'item',
+    '#title' => $sol_sew['nombre_so'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  $form['info7']['row1']['etiqueta1'] = array(
+    '#type' => 'item',
+    '#title' => t('Versión:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info7']['row1']['valor1'] = array(
+    '#type' => 'item',
+    '#title' => $sol_sew['serweb_ver'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  
+    $form['info7']['row2'] = array(
+    '#type' => 'item',
+    '#title' => '',
+    '#prefix' => '<tr>',
+    '#suffix' => '</tr>',
+  );
+  $form['info7']['row2']['etiqueta'] = array(
+    '#type' => 'item',
+    '#title' => t('Direccion IP:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info7']['row2']['valor'] = array(
+    '#type' => 'item',
+    '#title' => $sol_sew['ip_serweb'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+    $form['info7']['row2']['etiqueta1'] = array(
+    '#type' => 'item',
+    '#title' => t('Directorio de aplicación:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info7']['row2']['valor1'] = array(
+    '#type' => 'item',
+    '#title' => $sol_sew['doc_root'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+ 
+  $form['info7']['row3'] = array(
+    '#type' => 'item',
+    '#title' => '',
+    '#prefix' => '<tr>',
+    '#suffix' => '</tr>',
+  );
+  $form['info7']['row3']['etiqueta'] = array(
+    '#type' => 'item',
+    '#title' => t('Protocolo de acceso:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info7']['row3']['valor'] = array(
+    '#type' => 'item',
+    '#title' => $sol_sew['protocolo'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+    $form['info7']['row3']['etiqueta1'] = array(
+    '#type' => 'item',
+    '#title' => t('Puerto:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info7']['row3']['valor1'] = array(
+    '#type' => 'item',
+    '#title' => $sol_sew['acceso_puerto'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+ //Sitio web 
+	  $form['info8'] = array(
+    '#type' => 'item', 
+    '#title' => t('Sitio web'),
+    '#prefix' => '<table style=" float: left">',
+    '#suffix' => '</table>',
+  );  
+  
+  $form['info8']['row1'] = array(
+    '#type' => 'item',
+    '#title' => '',
+    '#prefix' => '<tr>',
+    '#suffix' => '</tr>',
+  );
+  $form['info8']['row1']['etiqueta'] = array(
+    '#type' => 'item',
+    '#title' => t('Puerto(s):'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info8']['row1']['valor'] = array(
+    '#type' => 'item',
+    '#title' => $puerto,    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  $form['info8']['row1']['etiqueta1'] = array(
+    '#type' => 'item',
+    '#title' => t('Url aplicacion:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info8']['row1']['valor1'] = array(
+    '#type' => 'item',
+    '#title' => $sol_sew['url_link'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  
+    $form['info8']['row2'] = array(
+    '#type' => 'item',
+    '#title' => '',
+    '#prefix' => '<tr>',
+    '#suffix' => '</tr>',
+  );
+  $form['info8']['row2']['etiqueta'] = array(
+    '#type' => 'item',
+    '#title' => t('Software del servidor:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info8']['row2']['valor'] = array(
+    '#type' => 'item',
+    '#title' => $sol_sew['software_nombre'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+    $form['info8']['row2']['etiqueta1'] = array(
+    '#type' => 'item',
+    '#title' => t('Version del software:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info8']['row2']['valor1'] = array(
+    '#type' => 'item',
+    '#title' => $sol_sew['sitweb_vers'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  
+  //Manejador de base de datos
+    $form['info9'] = array(
+    '#type' => 'item', 
+    '#title' => t('Manejador Base de datos'),
+    '#prefix' => '<table style=" float: left">',
+    '#suffix' => '</table>',
+  );
+  $form['info9']['row1'] = array(
+    '#type' => 'item',
+    '#title' => '',
+    '#prefix' => '<tr>',
+    '#suffix' => '</tr>',
+  );
+  $form['info9']['row1']['etiqueta'] = array(
+    '#type' => 'item',
+    '#title' => t('Direccion IP:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info9']['row1']['valor'] = array(
+    '#type' => 'item',
+    '#title' => $sol_sew['rdbms_ip'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  $form['info9']['row1']['etiqueta1'] = array(
+    '#type' => 'item',
+    '#title' => t('Puerto:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info9']['row1']['valor1'] = array(
+    '#type' => 'item',
+    '#title' => $sol_sew['rdbms_puerto'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  
+  $form['info9']['row1']['etiqueta2'] = array(
+    '#type' => 'item',
+    '#title' => t('Nombre de la BD:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info9']['row1']['valor2'] = array(
+    '#type' => 'item',
+    '#title' => $sol_sew['rdbms_nom'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+  
+    $form['info9']['row2'] = array(
+    '#type' => 'item',
+    '#title' => '',
+    '#prefix' => '<tr>',
+    '#suffix' => '</tr>',
+  );
+  $form['info9']['row2']['etiqueta'] = array(
+    '#type' => 'item',
+    '#title' => t('Software del servidor:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info9']['row2']['valor'] = array(
+    '#type' => 'item',
+    '#title' => $sol_sew['nombre_rdbms'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+    $form['info9']['row2']['etiqueta1'] = array(
+    '#type' => 'item',
+    '#title' => t('Version del software:'),    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );  
+  $form['info9']['row2']['valor1'] = array(
+    '#type' => 'item',
+    '#title' => $sol_sew['rdbms_ver'],    
+    '#prefix' => '<td>',
+    '#suffix' => '</td>',
+  );
+	 return $form;	
+
+}
+
 
 function Solicitud_borrar($form, &$form_submit) {
 	
@@ -228,161 +832,7 @@ function Solicitud_borrar($form, &$form_submit) {
 		//drupal_set_message(t('Solicitud no borrada, contiene revisiones.', array('@var' => $consulta_rev)), 'butterflies');
         drupal_set_message(t("Solicitud no borrada, contiene revisiones"), 'warning');
 	}
-
-   /*
-
-   $result = db_select('revision','r')
-           ->join('solicitud','s','r.id_solicitud = s.id_solicitud')
-           ->fields('r',array('id_solicitud'))
-           ->execute()
-           ->fetchField();
-   */
-
-	 /*
-	$transaccion = db_transaction();
-  	try {
-      $organizacion = db_insert('organizacion')->fields(array(
-        'org_nombre' => $nom_org,
-		'id_tiporg' => $tipo_org,
-      ))->execute();
-	
-	$orga=db_select('organizacion','t')
-  			->fields('t')
-			->orderBy('id_organizacion','DESC')
-			->execute()
-			->fetchAssoc();
-	 	$org = $orga['id_organizacion'];
-		
-      $contacto1 = db_insert('contacto')->fields(array(
-    	'cont_nombre' => $nom_adm,
-		'cont_correo' => $correo_adm,
-		'cont_tel' => $tel_adm,
-		'id_tipo_contacto' => '1',
-      ))->execute();
-	  
-	  $cont1=db_select('contacto','t')
-  			->fields('t')
-			->orderBy('id_contacto','DESC')
-			->execute()
-			->fetchAssoc();
-	 	$c1 = $cont1['id_contacto'];
-      
-	 $contacto2 = db_insert('contacto')->fields(array(
-        'cont_nombre' => $nom_tec,
-		'cont_correo' => $correo_tec,
-		'cont_tel' => $tel_tec,
-		'id_tipo_contacto' => '2',
-      ))->execute();
-	  
-	   $cont2=db_select('contacto','t')
-  			->fields('t')
-			->orderBy('id_contacto','DESC')
-			->execute()
-			->fetchAssoc();
-	 	$c2 = $cont2['id_contacto'];
-	  
-	 if( !(empty($ip_bd) && empty($puer_acc_bd) && empty($nom_bd) && empty($soft_bd) && empty($ver_bd))){
-	 $manejador = db_insert('manejador_db')->fields(array(
-        'id_sistema' => $soft_bd,
-        'rdbms_ver' => $ver_bd,
-        'rdbms_ip' => $ip_bd,
-        'rdbms_puerto' => $puer_acc_bd,
-        'rdbms_nom' => $nom_bd,
-      ))->execute();
-	 }
-
-	 $servidor_web = db_insert('servidor_web')->fields(array(
-        'id_so' => $sist_op,
-        'serweb_ver' => $sist_op_ver,
-        'id_proto' => $prot_acc_rem,
-        'acceso_puerto' => $puer_acc_rem,
-        'ip_serweb' => $ip_sitio
-      ))->execute();
-	 
-	 $server=db_select('servidor_web','t')
-  			->fields('t')
-			->orderBy('id_serweb','DESC')
-			->execute()
-			->fetchAssoc();
-	 	$test = $server['id_serweb'];
-	 
-	  $base=db_select('manejador_db','t')
-  			->fields('t')
-			->orderBy('id_rdbms','DESC')
-			->execute()
-			->fetchAssoc();
-	 	$bas = $base['id_rdbms'];
-	 
-	 if( !(empty($ip_bd) && empty($puer_acc_bd) && empty($nom_bd) && empty($soft_bd) && empty($ver_bd))){
-	 	$sitio_web = db_insert('sitio_web')->fields(array(
-        'id_soft' => $soft_web,
-        'sitweb_vers' => $ver_web,
-        'id_serweb' => $test,
-        'doc_root' => $dir_usua,
-        'id_rdbms' => $bas,
-      ))->execute();
-	 }else{
-	 	 $sitio_web = db_insert('sitio_web')->fields(array(
-        'id_soft' => $soft_web,
-        'sitweb_vers' => $ver_web,
-        'id_serweb' => $test,
-        'doc_root' => $dir_usua,
-      ))->execute();
-	 }	
-	  
-	 
-	  $sitio=db_select('sitio_web','t')
-  			->fields('t')
-			->orderBy('id_sitweb','DESC')
-			->execute()
-			->fetchAssoc();
-	 	$test1 = $sitio['id_sitweb'];
-	
-	$url_web= db_insert('url_web')->fields(array(
-        'url_link' => $url_sitio,
-        'id_sitweb' => $test1,
-      ))->execute();
-	
-	$puertos_web= db_insert('puertos_web')->fields(array(
-        'puerto_web' => $puer_acc_web,
-        'id_sitweb' => $test1,
-      ))->execute(); 
-	  
-	$solicitud= db_insert('solicitud')->fields(array(
-        'id_organizacion' => $org,
-        'fecha_sol' => $fecha_sol,
-        'fecha_disp' => $fecha_disp,
-        'fecha_ini' => $fecha_ini,
-        'fecha_fin' => $fecha_fin,
-        'id_sitweb' => $test1,
-      ))->execute(); 	
-	 
-	 $sol1=db_select('solicitud','t')
-  			->fields('t')
-			->orderBy('id_solicitud','DESC')
-			->execute()
-			->fetchAssoc();
-	 	$sol = $sol1['id_solicitud'];
-		
-	$sol_cont= db_insert('solicitud_contacto')->fields(array(
-        'id_solicitud' => $sol,
-        'id_contacto' => $c1
-      ))->execute(); 		
-	
-	$sol_cont= db_insert('solicitud_contacto')->fields(array(
-        'id_solicitud' => $sol,
-        'id_contacto' => $c2
-      ))->execute(); 
-	  
-	drupal_set_message(t('Datos Almacenados correctamente'));
-    }
-    catch (Exception $e) {
-      $transaccion->rollback();	
-      drupal_set_error(t('Hubo un problema. Por favor intente más tarde.'));
-    }
-	 * 
-	 */
-}
+	}
 
 
 function Lista_genera_xls($html,$filename){
