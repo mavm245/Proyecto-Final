@@ -13,6 +13,7 @@ delete from solicitud;
 delete from sitio_web;
 delete from manejador_db;
 delete from servidor_web;
+delete from organizacion;
 
 --Reiniciar los contadores para las secuencias de los inserts
 ALTER SEQUENCE revision_id_revision_seq RESTART WITH 1;
@@ -23,3 +24,4 @@ ALTER SEQUENCE solicitud_id_solicitud_seq RESTART WITH 1;
 ALTER SEQUENCE sitio_web_id_sitweb_seq RESTART WITH 1;
 ALTER SEQUENCE manejador_db_id_rdbms_seq RESTART WITH 1;
 ALTER SEQUENCE servidor_web_id_serweb_seq RESTART WITH 1;
+ALTER SEQUENCE organizacion_id_organizacion_seq RESTART WITH 1;
