@@ -16,6 +16,10 @@ delete from servidor_web;
 delete from organizacion;
 
 --Reiniciar los contadores para las secuencias de los inserts
+ALTER SEQUENCE hall_rev_id_revision_seq RESTART WITH 1;
+ALTER SEQUENCE hall_rev_nid_hallazgo_seq RESTART WITH 1;
+ALTER SEQUENCE rev_herr_nid_herramienta_seq RESTART WITH 1;
+ALTER SEQUENCE rev_herr_id_revision_seq RESTART WITH 1;
 ALTER SEQUENCE revision_id_revision_seq RESTART WITH 1;
 ALTER SEQUENCE url_web_id_url_seq RESTART WITH 1;
 ALTER SEQUENCE puertos_web_id_puerto_web_seq RESTART WITH 1;
