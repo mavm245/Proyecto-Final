@@ -37,21 +37,21 @@ function Generar_menu() {
     'title' => 'Segunda revision de seguimiento.',    
 	'page callback' => 'drupal_get_form',
     'page arguments' => array('Generar_tercera_form'),
-    'access arguments' => array('Generar'),
+    'access arguments' => array('Generar/Segunda-seguimiento'),
   );
   
    $items['Generar/download'] = array(
     'title' => 'Revision Download',    
 	'page callback' => 'drupal_get_form',
     'page arguments' => array('revision_word_download'),
-    'access arguments' => array('Generar'),
+    'access arguments' => array('Generar/download'),
   );
   
   $items['Generar/terminar'] = array(
     'title' => 'Terminar Revision',    
 	'page callback' => 'drupal_get_form',
     'page arguments' => array('terminar_revision'),
-    'access arguments' => array('Generar'),
+    'access arguments' => array('Generar/terminar'),
   );
   return $items;
 }
@@ -98,6 +98,11 @@ function Generar_primera_form($form, $form_state){
 	
 			$path=drupal_get_path('module','Generar');
 			 drupal_add_js($path.'/Generar.js',array('type'=>'file','weight'=>1));
+	
+	$form['#attached']['css'] = array(
+	    drupal_get_path('module', 'Generar') . '/Generar.css'
+	  );
+
 	$revision = 1;
 	$res = Generar_query_solicitud($revision);
 	$headers=$res['headers'];
@@ -114,6 +119,7 @@ function Generar_primera_form($form, $form_state){
     '#required' => TRUE,
     '#empty' => t('No existen solicitudes'),
     '#multiple' => FALSE,
+    '#prefix' => '<p>Solicitud a revisar:</p>',
   	);
 	
 	$auditor=db_select('node','t')
@@ -125,11 +131,11 @@ function Generar_primera_form($form, $form_state){
     		    
 
 	 $form['auditor'] = array(
-    '#title' => t('Auditor que realizará la revisión:'),
     '#type' => 'select',
     '#options' => $auditor,
     '#required' => TRUE,
     '#empty_option' => '-Seleccione-',
+    '#prefix' => '<p>Auditor titular que realizará la revisión:</p>',
   );
   
   $res = Generar_query_hallazgo();
@@ -141,14 +147,15 @@ function Generar_primera_form($form, $form_state){
 	}
     		    
 	 $form['hallazgo'] = array(
-	 '#title' => t('Hallazgos que se encontraron en la revisión:'),
     '#type' => 'tableselect',
     '#header' => $headers1,
     '#options' => $raws3,
     '#required' => TRUE,
     '#empty' => t('No existen hallazgos'),
     '#multiple' => TRUE,
-  	);
+    '#prefix' => '<p>Hallazgos que se encontraron en la revisión:<p><div id = "div1">',
+    '#suffix' => '</div><br>',
+	);
 	
 	$res = Generar_query_herramienta();
 	$headers2=$res['headers'];
@@ -159,20 +166,21 @@ function Generar_primera_form($form, $form_state){
 	}
     		    
 	 $form['herramienta'] = array(
-	'#title' => t('Herramientas que se usaron en la revisión:'),
     '#type' => 'tableselect',
     '#header' => $headers2,
     '#options' => $raws4,
     '#required' => TRUE,
     '#empty' => t('No existen Herramientas'),
     '#multiple' => TRUE,
-  	);
+    '#prefix' => '<p>Herramientas que se usaron en la revisión:</p><div id ="div2">',
+    '#suffix' => '</div>',
+    	);
 
 	$form['submit1'] = array(
       '#value' => 'Almacenar',
       '#type' => 'submit',
       '#submit' => array('almacenar_generar'),
-    );
+ );
 	
 	$form['submit2'] = array(
       '#value' => 'Actualizar',
@@ -184,7 +192,10 @@ function Generar_primera_form($form, $form_state){
   return $form;	
 }
 function Generar_segunda_form($form, $form_state){
-	
+ $form['#attached']['css'] = array(
+            drupal_get_path('module', 'Generar') . '/Generar.css'
+          );	
+
 	$revision = 2;
 	$res = Generar_query_solicitud($revision);
 	$headers=$res['headers'];
@@ -194,14 +205,16 @@ function Generar_segunda_form($form, $form_state){
 		$raws2[$raw['ID']]=$raw;
 	}
 
-	 $form['solicitud'] = array(
+
+           $form['solicitud'] = array(
     '#type' => 'tableselect',
     '#header' => $headers,
     '#options' => $raws2,
     '#required' => TRUE,
     '#empty' => t('No existen solicitudes'),
     '#multiple' => FALSE,
-  	);
+    '#prefix' => '<p>Solicitud a revisar:</p>',
+        );
 	
 	$auditor=db_select('node','t')
   			->fields('t',array('nid','title'))
@@ -210,15 +223,14 @@ function Generar_segunda_form($form, $form_state){
 			->execute()
 			->fetchAllKeyed();
     		    
-
-	 $form['auditor'] = array(
-    '#title' => t('Auditor que realizará la revisión:'),
+         $form['auditor'] = array(
     '#type' => 'select',
     '#options' => $auditor,
     '#required' => TRUE,
     '#empty_option' => '-Seleccione-',
+    '#prefix' => '<p>Auditor titular que realizará la revisión:</p>',
   );
-  
+	
   $res = Generar_query_hallazgo();
 	$headers1=$res['headers'];
 	$raws=$res['raws'];
@@ -227,15 +239,16 @@ function Generar_segunda_form($form, $form_state){
 		$raws3[$raw['NID']]=$raw;
 	}
     		    
-	 $form['hallazgo'] = array(
-	 '#title' => t('Hallazgos que se encontraron en la revisión:'),
+	$form['hallazgo'] = array(
     '#type' => 'tableselect',
     '#header' => $headers1,
     '#options' => $raws3,
     '#required' => TRUE,
     '#empty' => t('No existen hallazgos'),
     '#multiple' => TRUE,
-  	);
+    '#prefix' => '<p>Hallazgos que se encontraron en la revisión:<p><div id = "div1">',
+    '#suffix' => '</div><br>',
+        );
 	
 	$res = Generar_query_herramienta();
 	$headers2=$res['headers'];
@@ -244,16 +257,18 @@ function Generar_segunda_form($form, $form_state){
 	foreach ($raws as $raw) {
 		$raws4[$raw['NID']]=$raw;
 	}
-    		    
-	 $form['herramienta'] = array(
-	'#title' => t('Herramientas que se usaron en la revisión:'),
+    		  
+
+         $form['herramienta'] = array(
     '#type' => 'tableselect',
     '#header' => $headers2,
     '#options' => $raws4,
     '#required' => TRUE,
     '#empty' => t('No existen Herramientas'),
     '#multiple' => TRUE,
-  	);
+    '#prefix' => '<p>Herramientas que se usaron en la revisión:</p><div id ="div2">',
+    '#suffix' => '</div>',
+        );
 
 	$form['submit1'] = array(
       '#value' => 'Almacenar',
@@ -271,6 +286,10 @@ function Generar_segunda_form($form, $form_state){
 }
 
 function Generar_tercera_form($form, $form_state){
+ $form['#attached']['css'] = array(
+            drupal_get_path('module', 'Generar') . '/Generar.css'
+          );
+
 	
 	$revision = 3;
 	$res = Generar_query_solicitud($revision);
@@ -280,15 +299,15 @@ function Generar_tercera_form($form, $form_state){
 	foreach ($raws as $raw) {
 		$raws2[$raw['ID']]=$raw;
 	}
-
-	 $form['solicitud'] = array(
+           $form['solicitud'] = array(
     '#type' => 'tableselect',
     '#header' => $headers,
     '#options' => $raws2,
     '#required' => TRUE,
     '#empty' => t('No existen solicitudes'),
     '#multiple' => FALSE,
-  	);
+    '#prefix' => '<p>Solicitud a revisar:</p>',
+        );
 	
 	$auditor=db_select('node','t')
   			->fields('t',array('nid','title'))
@@ -296,14 +315,13 @@ function Generar_tercera_form($form, $form_state){
 			->condition('type','auditor','=')
 			->execute()
 			->fetchAllKeyed();
-    		    
 
-	 $form['auditor'] = array(
-    '#title' => t('Auditor que realizará la revisión:'),
+         $form['auditor'] = array(
     '#type' => 'select',
     '#options' => $auditor,
     '#required' => TRUE,
     '#empty_option' => '-Seleccione-',
+    '#prefix' => '<p>Auditor titular que realizará la revisión:</p>',
   );
   
   $res = Generar_query_hallazgo();
@@ -313,16 +331,18 @@ function Generar_tercera_form($form, $form_state){
 	foreach ($raws as $raw) {
 		$raws3[$raw['NID']]=$raw;
 	}
-    		    
-	 $form['hallazgo'] = array(
-	 '#title' => t('Hallazgos que se encontraron en la revisión:'),
+
+        $form['hallazgo'] = array(
     '#type' => 'tableselect',
     '#header' => $headers1,
     '#options' => $raws3,
     '#required' => TRUE,
     '#empty' => t('No existen hallazgos'),
     '#multiple' => TRUE,
-  	);
+    '#prefix' => '<p>Hallazgos que se encontraron en la revisión:<p><div id = "div1">',
+    '#suffix' => '</div><br>',
+        );
+ 
 	
 	$res = Generar_query_herramienta();
 	$headers2=$res['headers'];
@@ -331,16 +351,17 @@ function Generar_tercera_form($form, $form_state){
 	foreach ($raws as $raw) {
 		$raws4[$raw['NID']]=$raw;
 	}
-    		    
-	 $form['herramienta'] = array(
-	'#title' => t('Herramientas que se usaron en la revisión:'),
+
+         $form['herramienta'] = array(
     '#type' => 'tableselect',
     '#header' => $headers2,
     '#options' => $raws4,
     '#required' => TRUE,
     '#empty' => t('No existen Herramientas'),
     '#multiple' => TRUE,
-  	);
+    '#prefix' => '<p>Herramientas que se usaron en la revisión:</p><div id ="div2">',
+    '#suffix' => '</div>',
+        );
 
 	$form['submit1'] = array(
       '#value' => 'Almacenar',
@@ -407,7 +428,7 @@ function almacenar_generar($form, &$form_submit) {
       ))->execute();
       }
 	  }
-      drupal_set_message(t('Datos Almacenados correctamente'));
+      drupal_set_message(t('Datos Almacenados correctamente'),'status');
       //
     }
     catch (Exception $e) {
@@ -471,8 +492,7 @@ function almacenar_generar_segunda($form, &$form_submit) {
       ))->execute();
       }
 	  }
-	  drupal_set_message(t('Datos Almacenados correctamente para la solicitud @var', array('@var' => $solicitud)), 'butterflies'); 
-      drupal_set_message(t());
+	  drupal_set_message(t('Datos Almacenados correctamente para la solicitud @var', array('@var' => $solicitud)),'status'); 
       //
     }
     catch (Exception $e) {
@@ -536,8 +556,7 @@ function almacenar_generar_tercera($form, &$form_submit) {
       ))->execute();
       }
 	  }
-	  drupal_set_message(t('Datos Almacenados correctamente para la solicitud @var', array('@var' => $solicitud)), 'butterflies'); 
-      drupal_set_message(t());
+	  drupal_set_message(t('Datos Almacenados correctamente para la solicitud @var', array('@var' => $solicitud)), 'status'); 
       //
     }
     catch (Exception $e) {
@@ -558,6 +577,7 @@ function actualizar_generar($form, &$form_submit) {
 		$rev = db_select ('revision','s')
 		 ->fields('s',array('id_revision'))
 		 ->condition('s.id_solicitud',$solicitud,'=')
+		 ->condition('s.estado_rev','1','=')
 		 ->execute()
 		 ->fetchField();
 	$revision = $rev;
@@ -583,6 +603,7 @@ function actualizar_generar($form, &$form_submit) {
 		'nid_auditor' => $auditor,
       ))
       ->condition('id_solicitud',$solicitud,'=')
+      ->condition('estado_rev','1','=')
       ->execute();
 	  
 	  foreach($hallazgos as $hall){		
@@ -600,7 +621,7 @@ function actualizar_generar($form, &$form_submit) {
       ))->execute();
       }
 	  }
-      drupal_set_message(t('Datos Actualizados correctamente'));
+      drupal_set_message(t('Datos Actualizados correctamente'),'status');
       
     }
     catch (Exception $e) {
@@ -646,6 +667,7 @@ function actualizar_generar_segunda($form, &$form_submit) {
 		'nid_auditor' => $auditor,
       ))
       ->condition('id_solicitud',$solicitud,'=')
+      ->condition('estado_rev','2','=')
       ->execute();
 	  
 	  foreach($hallazgos as $hall){		
@@ -663,7 +685,7 @@ function actualizar_generar_segunda($form, &$form_submit) {
       ))->execute();
       }
 	  }
-      drupal_set_message(t('Datos Actualizados correctamente'));
+      drupal_set_message(t('Datos Actualizados correctamente'),'status');
       
     }
     catch (Exception $e) {
@@ -709,6 +731,7 @@ function actualizar_generar_tercera($form, &$form_submit) {
 		'nid_auditor' => $auditor,
       ))
       ->condition('id_solicitud',$solicitud,'=')
+      ->condition('estado_rev','3','=')	
       ->execute();
 	  
 	  foreach($hallazgos as $hall){		
@@ -726,7 +749,7 @@ function actualizar_generar_tercera($form, &$form_submit) {
       ))->execute();
       }
 	  }
-      drupal_set_message(t('Datos Actualizados correctamente'));
+      drupal_set_message(t('Datos Actualizados correctamente'),'status');
       
     }
     catch (Exception $e) {
@@ -737,9 +760,33 @@ function actualizar_generar_tercera($form, &$form_submit) {
 }
 
 function revision_word_download(){
+
 		$idsol=filter_var(strip_tags(isset($_GET['idSol'])?$_GET['idSol']:0),FILTER_SANITIZE_NUMBER_INT);
 		$idest=filter_var(strip_tags(isset($_GET['idrev'])?$_GET['idrev']:0),FILTER_SANITIZE_NUMBER_INT);
-		if (!empty($idsol)){
+	
+
+ $url  = db_select ('revision','r');
+                $url ->join('solicitud','s','r.id_solicitud = s.id_solicitud');
+                $url ->join('sitio_web','sw','s.id_sitweb = sw.id_sitweb');
+                $url ->join('url_web','uw','sw.id_sitweb = uw.id_sitweb');
+                $url = $url
+                                ->fields('uw',array('url_link'))
+                                ->condition('r.id_revision',$_SESSION['revision'],'=')
+                                ->condition('s.id_solicitud',$idsol,'=')
+                                ->execute()
+                                ->fetchField();
+
+		$fecha_ini  = db_select ('solicitud','s')
+			 ->fields('s',array('fecha_ini'))
+			 ->condition('s.id_solicitud',$_SESSION['solicitud'],'=')
+			 ->execute()
+			 ->fetchField();
+		$fecha_ini = str_replace("-","",$fecha_ini);
+
+
+		preg_match('@^(?:http://)?([^/]+)@i',$url, $coincidencias);
+		$host = $coincidencias[1];
+	if (!empty($idsol)){
 		$rev = db_select ('revision','s')
 		 ->fields('s',array('id_revision'))
 		 ->condition('s.id_solicitud',$idsol,'=')
@@ -750,8 +797,9 @@ function revision_word_download(){
 		$_SESSION['revision'] = $rev;
 		$_SESSION['solicitud'] = $idsol;
 		$res = genera_html();
-  		revision_generar_doc($res,"Revision de seguridad");
-		drupal_set_message(t('Descarga completada exitosamente'));	
+		$nombre_doc = $fecha_ini." - RevisionSeguridadWeb -".$host;
+  		revision_generar_doc($res,$nombre_doc);
+		drupal_set_message(t('Descarga completada exitosamente'),'status');	
 		}else{
 		
 		if($idest==1){
@@ -830,7 +878,7 @@ function terminar_revision($form, &$form_submit){
       ))
       ->condition('id_solicitud',$idsol,'=')
       ->execute();
-	  drupal_set_message(t('Segunda de revision de seguimiento finalizada correctamente'));
+	  drupal_set_message(t('Segunda de revision de seguimiento finalizada correctamente'),'status');
 		}
 		unset ($_SESSION['revision']);
 		unset ($_SESSION['solicitud']);	
@@ -981,15 +1029,20 @@ style="font:7.0pt "Times New Roman"">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&
 		$titulo = $info->title;
 		$descripcion = generar_extraer($prueba, 'field_descripcion_hallazgo','safe_value'); 
 		$nivel = generar_extraer($prueba, 'field_nivel','value');
-		if($nivel >= 0 && $nivel <= 2.9 ){
+		
+		if($nivel == 0){
+			$nivel = 'Sin impacto';
+			$bajos++;
+		}
+		if($nivel > 0 && $nivel <= 2.9 ){
 			$nivel = 'Bajo - '.$nivel;
 			$bajos++;
-			}
-			if($nivel >= 3.0 && $nivel <= 6.9 ){
+		}
+		if($nivel >= 3.0 && $nivel <= 6.9 ){
 			$nivel = 'Medio - '.$nivel;
 			$medios++;
-			}
-			if($nivel >= 7.0){
+		}
+		if($nivel >= 7.0){
 			$nivel = 'Alto - '.$nivel;
 			$altos++;
 		}
@@ -1011,10 +1064,10 @@ style="font:7.0pt "Times New Roman"">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&
 		foreach($referencias as $info3) {
 			$refeid = $info3->nid;
 			$refere = $info3->field_link_referencia_value;
-			$ref= $ref.'<p class=MsoNormal style="line-height:normal"><a href="'.$refere.'">'.$refere.'</a><span
-  style="mso-fareast-font-family:"Times New Roman";mso-fareast-theme-font:minor-fareast"><o:p></o:p></span></p>';
+			if (strpos($refere,$ref) == false) {
+    			$ref= $ref.'<p class=MsoNormal style="line-height:normal"><a href="'.$refere.'">'.$refere.'</a><span style="mso-fareast-font-family:"Times New Roman";mso-fareast-theme-font:minor-fareast"><o:p></o:p></span></p>';
+			}
 		}
-		
 		}
 	$tipo  = db_select ('node','a');
 		$tipo ->join('field_data_field_objetivo_id','b','a.nid = b.field_objetivo_id_target_id');
@@ -1505,7 +1558,7 @@ w\:* {behavior:url(#default#VML);}
 <title>Formato de creación de documentos v1.0.2</title>
 <!--[if gte mso 9]><xml>
  <o:DocumentProperties>
-  <o:Author>jcolin</o:Author>
+  <o:Author>mvasquez</o:Author>
   <o:Template>Reporte Revision.dotx</o:Template>
   <o:LastAuthor>Alejandro Vasquez</o:LastAuthor>
   <o:Revision>2</o:Revision>
@@ -5268,8 +5321,10 @@ table.Tabladecuadrcula2-nfasis11OddRow
      <td><![endif]>
      <div>
      <p class=MsoNoSpacing align=center style="text-align:center"><span
-     style="font-size:12.0pt;font-family:"Tahoma",sans-serif">REPORTE DE
+     style="font-size:12.0pt;font-family:"Tahoma",sans-serif;">REPORTE DE
      SEGURIDAD WEB DEL SITIO<o:p></o:p></span></p>
+
+
      <p class=MsoNoSpacing align=center style="text-align:center"><span
      style="font-size:12.0pt;font-family:"Tahoma",sans-serif"><o:p>&nbsp;</o:p></span></p>
      <p class=MsoNoSpacing align=center style="text-align:center"><b
@@ -5923,12 +5978,13 @@ seguridad Web</a></span></h1>
 
 </div>
 
-<p class=MsoNormal style="text-align:justify"><span style="mso-bookmark:_Toc254176315">A
-partir de los resultados de la revisión de seguridad y los hallazgos
-documentados, los responsables de la aplicación web deberán evaluar la
-aplicación de las recomendaciones emitidas en el presente reporte o implementar
-las que considere pertinentes, verificando que la medida correctiva adoptada no
-genere problemas en la operación de los servicios.</span></p>
+<p class=MsoNormal style="text-align:justify"><span style="mso-bookmark:_Toc254176315">La Coordinación de Seguridad de la Información/UNAM-CERT a través del Departamento de Seguridad en Sistemas se encarga de realizar revisiones de seguridad en aplicaciones web y bases de datos, que permiten implementar mejores prácticas con la finalidad de minimizar el riesgo de sufrir ataques a los activos de información. La revisión comprende pruebas manuales y automatizadas.
+<p  class=MsoNormal style="text-align:justify"><span style="mso-bookmark:_Toc254176315">
+Para medir el impacto de las vulnerabilidades encontradas se hace uso de la <a href="https://nvd.nist.gov/cvss.cfm?calculator&adv&version=2">calculadora</a> del  <a href="https://nvd.nist.gov/cvss.cfm?calculator">CVSS</a> (Common Vulnerability Scoring System). A partir de la cual se obtiene el puntaje base que se incluye en este reporte.</span>
+</p>
+<p  class=MsoNormal style="text-align:justify"><span style="mso-bookmark:_Toc254176315">
+A partir de los resultados de la revisión de seguridad y los hallazgos documentados, los responsables de la aplicación web deberán evaluar la aplicación de las recomendaciones emitidas en el presente reporte o implementar las que considere pertinentes, verificando que la medida correctiva adoptada no genere problemas en la operación de los servicios.</span>
+</p></span></p>
 
 <div style="mso-element:para-border-div;border:solid #DBE5F1 3.0pt;padding:
 0cm 0cm 0cm 0cm;background:#DBE5F1">
@@ -5941,7 +5997,7 @@ style="mso-bookmark:_Toc254176315"><a name="_Toc433285816">Objetivo</a></span></
 <p class=MsoNoSpacing><span style="mso-bookmark:_Toc254176315"><o:p>&nbsp;</o:p></span></p>
 
 <p class=normalc><span style="mso-bookmark:_Toc254176315"><span
-style="font-size:12.0pt;line-height:120%">Este documento muestra las vulnerabilidades
+style="font-size:11.0pt;line-height:120%">Este documento muestra las vulnerabilidades
 identificadas y una serie de recomendaciones, las cuales permitirán reforzar el
 nivel de confidencialidad, integridad y disponibilidad del sitio analizado.<o:p></o:p></span></span></p>
 
@@ -6144,7 +6200,7 @@ numérico que se pondera de acuerdo a la siguiente tabla:</p>
   style="mso-ascii-font-family:Calibri;mso-ascii-theme-font:minor-latin;
   mso-fareast-font-family:"Times New Roman";mso-fareast-theme-font:major-fareast;
   mso-hansi-font-family:Calibri;mso-hansi-theme-font:minor-latin;mso-bidi-font-family:
-  "Times New Roman";mso-bidi-theme-font:major-bidi;mso-bidi-font-weight:bold">Bajo<o:p></o:p></span></p>
+  "Times New Roman";mso-bidi-theme-font:major-bidi;mso-bidi-font-weight:bold">Alto<o:p></o:p></span></p>
   </td>
   <td width=135 style="width:100.95pt;border-top:none;border-left:none;
   border-bottom:solid #4F81BD 1.0pt;mso-border-bottom-themecolor:accent1;
@@ -6156,7 +6212,7 @@ numérico que se pondera de acuerdo a la siguiente tabla:</p>
   <p class=MsoNormal align=center style="margin:0cm;margin-bottom:.0001pt;
   text-align:center;line-height:normal;mso-yfti-cnfc:64"><span
   style="mso-ascii-font-family:Calibri;mso-ascii-theme-font:minor-latin;
-  mso-hansi-font-family:Calibri;mso-hansi-theme-font:minor-latin">0.0 a 2.9<o:p></o:p></span></p>
+  mso-hansi-font-family:Calibri;mso-hansi-theme-font:minor-latin">Mayor a 7.0<o:p></o:p></span></p>
   </td>
   <td width=135 style="width:100.95pt;border-top:none;border-left:none;
   border-bottom:solid #4F81BD 1.0pt;mso-border-bottom-themecolor:accent1;
@@ -6168,7 +6224,7 @@ numérico que se pondera de acuerdo a la siguiente tabla:</p>
   <p class=MsoNormal align=center style="margin:0cm;margin-bottom:.0001pt;
   text-align:center;line-height:normal;mso-yfti-cnfc:64"><span
   style="mso-ascii-font-family:Calibri;mso-ascii-theme-font:minor-latin;
-  mso-hansi-font-family:Calibri;mso-hansi-theme-font:minor-latin">'.$bajos.'<o:p></o:p></span></p>
+  mso-hansi-font-family:Calibri;mso-hansi-theme-font:minor-latin">'.$altos.'<o:p></o:p></span></p>
   </td>
  </tr>
  <tr style="mso-yfti-irow:1">
@@ -6216,7 +6272,7 @@ numérico que se pondera de acuerdo a la siguiente tabla:</p>
   mso-fareast-font-family:"Times New Roman";mso-fareast-theme-font:major-fareast;
   mso-hansi-font-family:Calibri;mso-hansi-theme-font:minor-latin;mso-bidi-font-family:
   "Times New Roman";mso-bidi-theme-font:major-bidi;mso-ansi-language:EN-US;
-  mso-bidi-font-weight:bold">Alto<o:p></o:p></span></p>
+  mso-bidi-font-weight:bold">Bajo<o:p></o:p></span></p>
   </td>
   <td width=135 style="width:100.95pt;border-top:none;border-left:none;
   border-bottom:solid #4F81BD 1.0pt;mso-border-bottom-themecolor:accent1;
@@ -6228,7 +6284,7 @@ numérico que se pondera de acuerdo a la siguiente tabla:</p>
   <p class=MsoNormal align=center style="margin:0cm;margin-bottom:.0001pt;
   text-align:center;line-height:normal;mso-yfti-cnfc:64"><span
   style="mso-ascii-font-family:Calibri;mso-ascii-theme-font:minor-latin;
-  mso-hansi-font-family:Calibri;mso-hansi-theme-font:minor-latin">Mayor a 7.0<o:p></o:p></span></p>
+  mso-hansi-font-family:Calibri;mso-hansi-theme-font:minor-latin">0.0 a 2.9<o:p></o:p></span></p>
   </td>
   <td width=135 style="width:100.95pt;border-top:none;border-left:none;
   border-bottom:solid #4F81BD 1.0pt;mso-border-bottom-themecolor:accent1;
@@ -6240,7 +6296,7 @@ numérico que se pondera de acuerdo a la siguiente tabla:</p>
   <p class=MsoNormal align=center style="margin:0cm;margin-bottom:.0001pt;
   text-align:center;line-height:normal;mso-yfti-cnfc:64"><span
   style="mso-ascii-font-family:Calibri;mso-ascii-theme-font:minor-latin;
-  mso-hansi-font-family:Calibri;mso-hansi-theme-font:minor-latin">'.$altos.'<o:p></o:p></span></p>
+  mso-hansi-font-family:Calibri;mso-hansi-theme-font:minor-latin">'.$bajos.'<o:p></o:p></span></p>
   </td>
  </tr>
 </table>
