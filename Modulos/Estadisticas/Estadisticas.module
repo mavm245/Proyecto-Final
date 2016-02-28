@@ -219,7 +219,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
 	foreach ($raws as $raw) {
 		$raws5[$raw['herramienta']]=$raw;
 	}
-    $leyenda = 'Top de herramientas mas utilizadas en revisiones.';
+    $leyenda = 'Top de herramientas más utilizadas en revisiones.';
     		    
     $form['etapa4'] = array(
       '#type' => 'item',
