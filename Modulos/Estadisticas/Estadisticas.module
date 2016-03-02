@@ -18,8 +18,8 @@ function Estadisticas_menu() {
 );
   
    $items['Estadisticas/todas'] = array(
-    'title' => 'Todas las solicitudes.',    
-	'page callback' => 'drupal_get_form',
+    'title' => 'Estadisticas de las revisiones.',    
+    'page callback' => 'drupal_get_form',
     'page arguments' => array('Estadisticas_solicitudes_form'),
     'access arguments' => array('Estadisticas/todas'),
   );
@@ -43,7 +43,7 @@ function Estadisticas_permission() {
 
 function Estadisticas_main(){
 			  return t('<ul style="text-align: justify;">
-		  		<li>'.l( t("Estadisticas de todas las solicitudes."),'Estadisticas/todas').'</li>
+		  		<li>'.l( t("Estadisticas de las revisiones."),'Estadisticas/todas').'</li>
 		    	</ul>');		  
 }
 
@@ -60,7 +60,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
 	foreach ($raws as $raw) {
 		$raws2[$raw['nid']]=$raw;
 	}
-    $leyenda = 'Numero de revisiones por auditor.';
+    $leyenda = '<h3>Numero de revisiones por auditor.</h3>';
     		    
     $form['etapa'] = array(
       '#type' => 'item',
@@ -78,7 +78,6 @@ function Estadisticas_solicitudes_form($form, $form_state){
 
 	$data = $raws2;
 	$options_column = array(
-	'title' => 'Record de auditores',
 	'fields' => array(
 	'auditorias' => array(
 	'label' => t('Auditorias'),
@@ -89,7 +88,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
 	'labelField' => 'auditor',
 	),
 	'data' => $data,
-	'type' => 'column',
+	'type' => 'pie',
 	);
 
 	$form['column'] =  array(
@@ -97,7 +96,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
 	'#options' => $options_column,
 	);
 
-	//form para Hallazgos por revisiones:
+/*	//form para Hallazgos por revisiones:
 	$res = Estadisticas_query_hallxrev();
 	$headers2=$res['headers'];
 	$raws=$res['raws'];
@@ -112,7 +111,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
       '#title' => $leyenda,
     );
 
-/*
+*
 	$sitios=db_select('solicitud','t')
   			->fields('t',array('id_solicitud','sitio_nombre'))
 			->orderBy('sitio_nombre','ASC')
@@ -134,7 +133,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
       '#submit' => array('alta_rev_enviar'),
     );	
 
-*/
+
 	 $form['table2'] = array(
     '#theme' => 'table',
     '#header' => $headers2,
@@ -175,7 +174,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
 	foreach ($raws as $raw) {
 		$raws4[$raw['hallazgo']]=$raw;
 	}
-    $leyenda = 'Numero total de hallazgos por todas las revisiones.';
+    $leyenda = '<h3>Hallazgos más encontrados</h3>';
     		    
     $form['etapa3'] = array(
       '#type' => 'item',
@@ -189,10 +188,10 @@ function Estadisticas_solicitudes_form($form, $form_state){
 	'#attributes' => array( 'class' => array('sortable')),
   	);
 
+
 	//Grafica para el Numero de Hallazgos Totales:
 	$data = $raws4;
 	$options_column = array(
-	'title' => 'Hallazgos Totales',
 	'fields' => array(
 	'num_hallazgos' => array(
 	'label' => t('Número de Hallazgos'),
@@ -211,6 +210,8 @@ function Estadisticas_solicitudes_form($form, $form_state){
 	'#options' => $options_column,
 	);
 
+
+
 	//form para Numero de Herramientas totales:
 	$res = Estadisticas_query_herr_tot();
 	$headers4=$res['headers'];
@@ -219,7 +220,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
 	foreach ($raws as $raw) {
 		$raws5[$raw['herramienta']]=$raw;
 	}
-    $leyenda = 'Top de herramientas mas utilizadas en revisiones.';
+    $leyenda = '<h3>Top de herramientas más utilizadas en revisiones.</h3>';
     		    
     $form['etapa4'] = array(
       '#type' => 'item',
@@ -254,7 +255,6 @@ function Estadisticas_solicitudes_form($form, $form_state){
 
 	$data = $raws5;
 	$options_pie = array(
-	'title' => 'Herramientas Favoritas',
 	'fields' => array(
 	'usos' => array(
 	'label' => t('Usos'),
@@ -338,7 +338,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
 	foreach ($raws as $raw) {
 		$raws7[$raw['año']]=$raw;
 	}
-    $leyenda = 'Numero total de revisiones por año.';
+    $leyenda = '<h3>Numero total de revisiones por año.</h3>';
     		    
     $form['etapa6'] = array(
       '#type' => 'item',
@@ -355,7 +355,6 @@ function Estadisticas_solicitudes_form($form, $form_state){
 	//Grafica para el Numero de Revisiones Totales por año:
 	$data = $raws7;
 	$options_line = array(
-	'title' => 'Revisiones Totales por año',
 	'fields' => array(
 	'solicitudes' => array(
 	'label' => t('Solicitudes'),
@@ -383,7 +382,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
 	foreach ($raws as $raw) {
 		$raws8[$raw['id']]=$raw;
 	}
-    $leyenda = 'Revisiones realizadas por cada auditor.';
+  /*  $leyenda = 'Revisiones realizadas por cada auditor.';
     		    
     $form['etapa7'] = array(
       '#type' => 'item',
@@ -395,7 +394,7 @@ function Estadisticas_solicitudes_form($form, $form_state){
     '#rows' => $raws8,
     '#empty' => t('No existen revisiones.'),
 	'#attributes' => array( 'class' => array('sortable')),
-  	);
+  	);*/
 /*
 	//Grafica para el Numero de Revisiones Totales por año:
 	$data = $raws8;
@@ -480,7 +479,7 @@ $registro->execute()
    	  
 	  $array = array();
 	  $array['raws'] =array();
-	  $array['headers'] =array( 'nid'=>'nid','auditor'=>'Auditor','auditorias'=>'Auditorias');
+	  $array['headers'] =array( 'nid'=>'Identificador','auditor'=>'Auditor','auditorias'=>'Auditorias');
 	  
 	  foreach ($res as $valor) {  
 	  	$array_tmp = array();
@@ -559,7 +558,7 @@ $registro = $registro  = db_query('SELECT n.nid, n.title herramienta, count(n.ni
    	  
 	  $array = array();
 	  $array['raws'] =array();
-	  $array['headers'] =array( 'herramienta'=>'herramienta','usos'=>'Total en usos');
+	  $array['headers'] =array( 'herramienta'=>'Herramienta','usos'=>'Total en usos');
 	  
 	  foreach ($res as $valor) {  
 	  	$array_tmp = array();
@@ -609,7 +608,7 @@ function Estadisticas_query_revxyear(){
    	  
 	  $array = array();
 	  $array['raws'] =array();
-	  $array['headers'] =array( 'año'=>'año','solicitudes'=>'solicitudes');
+	  $array['headers'] =array( 'año'=>'Año','solicitudes'=>'Total de revisiones');
 	  
 	  foreach ($res as $valor) {  
 	  	$array_tmp = array();
