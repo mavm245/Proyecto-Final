@@ -35,8 +35,14 @@ function Lista_menu() {
     'title' => 'Solicitud detalles',    
 	'page callback' => 'drupal_get_form',
     'page arguments' => array('Solicitud_vis'),
-    'access arguments' => array('Lista'),
+    'access arguments' => array('Lista/detalles'),
   );
+  
+   $items['Lista/reporte'] = array(
+  'title' => 'Reporte de solicitudes',
+  'page callback' => 'reporte',
+  'access arguments' => array('Lista/reporte/'),
+);
   
   return $items;
 }
@@ -61,6 +67,11 @@ function Lista_permission() {
       'title' => t('Permisos para visualizar los detalles de las solicitudes'),
       'description' => t('Seleccion de usuarios que pueden tener acceso a la lista de detalles'),
     ),
+    
+    'Lista/reporte/' => array(
+    'title' => t('Reporte de solicitudes'),
+    'description' => t('Permisos para visualizar el reporte de solicitudes.'),
+),
   );
 }
 
@@ -68,10 +79,20 @@ function Lista_main(){
 	return t('<ul style="text-align: justify;">
 		  		<li>'.l( t("Listado de todas las solicitudes."),'Lista/todas').'</li>
 		  		<li>'.l( t("Listado de solicitudes para visitantes"),'Lista/todas_vis').'</li>
+		  		<li>'.l( t("Reporte de solicitudes"),'Lista/reporte').'</li>
 		    	</ul>');
 }
 
-
+function reporte(){
+        
+  $res = query_reporte();
+  $headers=$res['headers'];
+  $raws=$res['raws'];
+  $html_tabla = theme('table', array('header' => $headers, 'rows' => $raws, 'sticky' => TRUE,));
+  Lista_genera_xls($html_tabla,"reporte");
+  return;
+        
+}
 
 function Lista_solicitudes_form($form, $form_state){
 	$res = Lista_query_solicitud();
@@ -158,6 +179,9 @@ function Lista_query_solicitud(){
 			if($valor['num_rev'] == 3){
 			$estatus = "2da revisión";
 			}
+			if($valor['num_rev'] == 4){
+			$estatus = "Finalizado";
+			}
 	   $array_tmp = array();
 		  	$array_tmp["ID"] 			= $valor['id_solicitud'];
 			$array_tmp["URL_Sitio"] 		= $valor['url_link'];
@@ -194,6 +218,9 @@ function Lista_query_solicitud_vis(){
 			if($valor['num_rev'] == 3){
 			$estatus = "2da revisión";
 			}
+			if($valor['num_rev'] == 4){
+			$estatus = "Finalizado";
+			}
 
 	  	$array_tmp = array();
 		  	$array_tmp["ID"] 				= $valor['id_solicitud'];
@@ -209,14 +236,57 @@ function Lista_query_solicitud_vis(){
 	
 }
 
+function query_reporte(){
+
+	$registro = db_query("select s.sitio_nombre, uw.url_link, s.fecha_fin, s.num_rev, o.org_nombre from solicitud s, organizacion o, sitio_web sw, url_web uw where o.id_organizacion = s.id_organizacion and s.id_sitweb = sw.id_sitweb and sw.id_sitweb = uw.id_sitweb;");
+	  db_set_active('default');
+  
+	  $res = array();
+	  
+      foreach ($registro as $valor) {
+	    array_push($res,get_object_vars($valor));
+  	  }	
+   	  
+	  $array = array();
+	  $array['raws'] =array();
+	  $array['headers'] =array( 'sitio_nombre'=>'Nombre del Sitio','url_link'=>'Url del Sitio','fecha_fin'=>'Fecha de Finalizacion','num_rev'=>'Estatus','org_nombre'=>'Dependencia');
+	  
+	  foreach ($res as $valor) {  
+	  if($valor['num_rev'] == 1){
+			$estatus = "Pendiente";
+			}
+			if($valor['num_rev'] == 2){
+		 	$estatus = "1ra revisión";
+			}
+			if($valor['num_rev'] == 3){
+			$estatus = "2da revisión";
+			}
+			if($valor['num_rev'] == 4){
+			$estatus = "Finalizado";
+			}
+	  	$array_tmp = array();
+		  	$array_tmp["sitio_nombre"] 		= $valor['sitio_nombre'];
+		  	$array_tmp["url_link"] 			= $valor['url_link'];
+			$array_tmp["fecha_fin"]			= $valor['fecha_fin'];
+			$array_tmp["num_rev"]			= $estatus;
+			$array_tmp["org_nombre"]		= $valor['org_nombre'];
+	    array_push($array['raws'],$array_tmp);
+	  }
+	  return $array;		
+}
+
 
 function Solicitud_vis($form, $form_state) {
+	if($_GET['idSol'] == NULL){
+		drupal_goto('Lista');
+	}else{
 	$solicitud=filter_var(strip_tags(isset($_GET['idSol'])?$_GET['idSol']:0),FILTER_SANITIZE_NUMBER_INT);
+	}
 	db_set_active('default');
 	$sol_con = db_query("select s.id_organizacion, s.fecha_sol, s.fecha_disp, s.fecha_ini, s.fecha_fin, s.id_sitweb, s.sitio_nombre, s.num_rev, t.tipo_nombre, o.org_nombre from tipo_organizacion t, organizacion o, solicitud s where s.id_organizacion = o.id_organizacion and o.id_tiporg = t.id_tiporg and id_solicitud = :id
        ",array(":id"=>$solicitud));
 	$sol_con = $sol_con->fetchAssoc();
-	
+	//print_r($sol_con["id_sitweb"]);
 	$sol_dat_adm = db_query("select c.cont_nombre, c.cont_correo, c.cont_tel from solicitud_contacto sc, contacto c where sc.id_contacto = c.id_contacto and c.id_tipo_contacto = 1 and sc.id_solicitud = :id
        ",array(":id"=>$solicitud));
 	$sol_dat_adm = $sol_dat_adm->fetchAssoc();
@@ -225,11 +295,15 @@ function Solicitud_vis($form, $form_state) {
        ",array(":id"=>$solicitud));
 	$sol_dat_tec = $sol_dat_tec->fetchAssoc();
 	
-	$sol_sew = db_query("select * from sitio_web sw, servidor_web sew, servidor_so ss, protos_acceso pa, manejador_db md, sistema_manejador sm, soft_servidor sf, url_web ur where sw.id_serweb = sew.id_serweb and sew.id_so = ss.id_so and sew.id_proto = pa.id_proto and sw.id_rdbms = md.id_rdbms and md.id_sistema = sm.id_sistema and sf.id_soft = sw.id_soft and ur.id_sitweb = sw.id_sitweb and sw.id_sitweb = :id 
+	$sol_sew = db_query("select * from sitio_web sw, servidor_web sew, servidor_so ss, protos_acceso pa, soft_servidor sf, url_web ur where sw.id_serweb = sew.id_serweb and sew.id_so = ss.id_so and sew.id_proto = pa.id_proto and sf.id_soft = sw.id_soft and ur.id_sitweb = sw.id_sitweb and sw.id_sitweb = :id 
 	",array(":id"=>$sol_con["id_sitweb"]));
 	$sol_sew = $sol_sew->fetchAssoc();
 	
+	$sol_bd = db_query("select * from sitio_web sw, manejador_db md, sistema_manejador sm where sw.id_rdbms = md.id_rdbms and md.id_sistema = sm.id_sistema and sw.id_sitweb = :id 
+	",array(":id"=>$sol_con["id_sitweb"]));
+	$sol_bd = $sol_bd->fetchAssoc();
 	
+
 	$query = 'select pw.puerto_web from sitio_web sw, puertos_web pw where sw.id_sitweb = pw.id_sitweb and sw.id_sitweb ='.$sol_con["id_sitweb"].';';
   	$pu = db_query($query); 
 	
@@ -246,6 +320,10 @@ function Solicitud_vis($form, $form_state) {
 }
 
 	Lista_main();
+        $form['#attached']['css'] = array(
+            drupal_get_path('module', 'Lista') . '/Lista.css'
+          );
+
 	
 	//print_r($res);
 	//drupal_set_message(t('Something @var just happened this is test', array('@var' => $puerto)), 'status');   
@@ -253,7 +331,7 @@ function Solicitud_vis($form, $form_state) {
   $form['info'] = array(
     '#type' => 'item', 
     '#title' => '<h4>Detalles de solicitud N° '.$solicitud.'<h4>',
-    '#prefix' => '<table style=" float: left">',
+    '#prefix' => '<table float: left">',
     '#suffix' => '</table>',
   );
   $form['info']['row1'] = array(
@@ -277,8 +355,8 @@ function Solicitud_vis($form, $form_state) {
  ///Datos organizacion 
   $form['info1'] = array(
     '#type' => 'item', 
-    '#title' => t('Organización'),
-    '#prefix' => '<table style=" float: left">',
+    '#title' => '<p class="etiqueta">Organización.</p>',
+    '#prefix' => '<table float: left">',
     '#suffix' => '</table>',
   );
   $form['info1']['row1'] = array(
@@ -315,8 +393,8 @@ function Solicitud_vis($form, $form_state) {
  //Datos fechas solicitud
     $form['info2'] = array(
     '#type' => 'item', 
-    '#title' => t('Fechas'),
-    '#prefix' => '<table style=" float: left">',
+    '#title' =>  '<p class="etiqueta">Fechas de revisión.</p>',
+    '#prefix' => '<table float: left">',
     '#suffix' => '</table>',
   );
   $form['info2']['row1'] = array(
@@ -385,8 +463,8 @@ function Solicitud_vis($form, $form_state) {
   
   $form['info3'] = array(
     '#type' => 'item', 
-    '#title' => t('Datos de contacto'),
-    '#prefix' => '<table style=" float: left">',
+    '#title' =>  '<p class="etiqueta">Datos de contacto.</p>',
+    '#prefix' => '<table float: left">',
     '#suffix' => '</table>',
   );
   
@@ -394,8 +472,8 @@ function Solicitud_vis($form, $form_state) {
   
   $form['info4'] = array(
     '#type' => 'item', 
-    '#title' => t('Contacto administrativo -Administrador del proyecto.'),
-    '#prefix' => '<table style=" float: left">',
+    '#title' => t('Contacto administrativo - Administrador del proyecto.'),
+    '#prefix' => '<table float: left">',
     '#suffix' => '</table>',
   );
   
@@ -446,8 +524,8 @@ function Solicitud_vis($form, $form_state) {
   //Datos de contacto técnico
   $form['info5'] = array(
     '#type' => 'item', 
-    '#title' => t('Contacto técnico -Administrador del sitio web.'),
-    '#prefix' => '<table style=" float: left">',
+    '#title' => t('Contacto técnico - Administrador del sitio web.'),
+    '#prefix' => '<table float: left">',
     '#suffix' => '</table>',
   );
   
@@ -497,8 +575,8 @@ function Solicitud_vis($form, $form_state) {
  //////Requerimientos
     $form['info6'] = array(
     '#type' => 'item', 
-    '#title' => t('Requerimientos'),
-    '#prefix' => '<table style=" float: left">',
+    '#title' =>  '<p class="etiqueta">Requerimientos.</p>',
+    '#prefix' => '<table float: left">',
     '#suffix' => '</table>',
   );
   
@@ -506,7 +584,7 @@ function Solicitud_vis($form, $form_state) {
   	  $form['info7'] = array(
     '#type' => 'item', 
     '#title' => t('Detalles servidor'),
-    '#prefix' => '<table style=" float: left">',
+    '#prefix' => '<table float: left">',
     '#suffix' => '</table>',
   );
 	$form['info7']['row1'] = array(
@@ -605,7 +683,7 @@ function Solicitud_vis($form, $form_state) {
 	  $form['info8'] = array(
     '#type' => 'item', 
     '#title' => t('Sitio web'),
-    '#prefix' => '<table style=" float: left">',
+    '#prefix' => '<table float: left">',
     '#suffix' => '</table>',
   );  
   
@@ -675,7 +753,7 @@ function Solicitud_vis($form, $form_state) {
     $form['info9'] = array(
     '#type' => 'item', 
     '#title' => t('Manejador Base de datos'),
-    '#prefix' => '<table style=" float: left">',
+    '#prefix' => '<table float: left">',
     '#suffix' => '</table>',
   );
   $form['info9']['row1'] = array(
@@ -692,7 +770,7 @@ function Solicitud_vis($form, $form_state) {
   );  
   $form['info9']['row1']['valor'] = array(
     '#type' => 'item',
-    '#title' => $sol_sew['rdbms_ip'],    
+    '#title' => $sol_bd['rdbms_ip'],    
     '#prefix' => '<td>',
     '#suffix' => '</td>',
   );
@@ -704,7 +782,7 @@ function Solicitud_vis($form, $form_state) {
   );  
   $form['info9']['row1']['valor1'] = array(
     '#type' => 'item',
-    '#title' => $sol_sew['rdbms_puerto'],    
+    '#title' => $sol_bd['rdbms_puerto'],    
     '#prefix' => '<td>',
     '#suffix' => '</td>',
   );
@@ -717,7 +795,7 @@ function Solicitud_vis($form, $form_state) {
   );  
   $form['info9']['row1']['valor2'] = array(
     '#type' => 'item',
-    '#title' => $sol_sew['rdbms_nom'],    
+    '#title' => $sol_bd['rdbms_nom'],    
     '#prefix' => '<td>',
     '#suffix' => '</td>',
   );
@@ -736,7 +814,7 @@ function Solicitud_vis($form, $form_state) {
   );  
   $form['info9']['row2']['valor'] = array(
     '#type' => 'item',
-    '#title' => $sol_sew['nombre_rdbms'],    
+    '#title' => $sol_bd['nombre_rdbms'],    
     '#prefix' => '<td>',
     '#suffix' => '</td>',
   );
@@ -748,7 +826,7 @@ function Solicitud_vis($form, $form_state) {
   );  
   $form['info9']['row2']['valor1'] = array(
     '#type' => 'item',
-    '#title' => $sol_sew['rdbms_ver'],    
+    '#title' => $sol_bd['rdbms_ver'],    
     '#prefix' => '<td>',
     '#suffix' => '</td>',
   );
