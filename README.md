@@ -52,9 +52,3 @@ Contar con una herramienta que permita dar seguimiento en tiempo real de las rev
   - IP Address: 192.168.13.3
 - Probable LDAP
   - IP Address: 192.168.13.4
-
-### Servidores Produccion
-- RevSeg
-  - IP Address: 45.55.28.187
-- RevSegDB
-  - IP Address: 104.236.170.92
