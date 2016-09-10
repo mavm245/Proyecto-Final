@@ -34,7 +34,7 @@ INSERT INTO sistema_manejador (nombre_rdbms) VALUES
 	('DB2'),
 	('MS SQL Server'),
 	('MariaDB'),
-	(MS Access);
+	('MS Access');
 
 INSERT INTO tipo_contacto (tipo_contacto) VALUES
 	('Contacto Administrativo'),
